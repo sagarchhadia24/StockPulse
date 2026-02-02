@@ -42,8 +42,8 @@ export function PriceChange({
       className={cn(
         "inline-flex items-center rounded-full font-medium tabular-nums transition-colors",
         sizeClasses[size],
-        isPositive && "bg-[#00FF88]/15 text-[#00FF88]",
-        isNegative && "bg-[#FF6B6B]/15 text-[#FF6B6B]",
+        isPositive && "bg-[#00dc82]/15 text-[#00dc82]",
+        isNegative && "bg-[#f87171]/15 text-[#f87171]",
         isNeutral && "bg-white/10 text-white/60",
         className
       )}

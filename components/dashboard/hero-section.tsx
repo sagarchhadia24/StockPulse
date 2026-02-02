@@ -62,10 +62,10 @@ export function HeroSection({ indices }: HeroSectionProps) {
             <span
               className={
                 marketSentiment === "bullish"
-                  ? "text-[#00FF88]"
+                  ? "text-[#00dc82]"
                   : marketSentiment === "bearish"
-                  ? "text-[#FF6B6B]"
-                  : "text-[#FFB800]"
+                  ? "text-[#f87171]"
+                  : "text-[#f59e0b]"
               }
             >
               {marketSentiment}
@@ -116,7 +116,7 @@ export function HeroSection({ indices }: HeroSectionProps) {
                 </p>
                 <div
                   className={`flex items-center gap-1.5 mt-2 text-sm font-medium ${
-                    index.change >= 0 ? "text-[#00FF88]" : "text-[#FF6B6B]"
+                    index.change >= 0 ? "text-[#00dc82]" : "text-[#f87171]"
                   }`}
                 >
                   {index.change >= 0 ? (
@@ -165,7 +165,7 @@ function QuickStat({ icon: Icon, label, value, change }: QuickStatProps) {
           <span className="font-semibold tabular-nums">{value}</span>
           <span
             className={`text-xs font-medium ${
-              isPositive ? "text-[#00FF88]" : "text-[#FF6B6B]"
+              isPositive ? "text-[#00dc82]" : "text-[#f87171]"
             }`}
           >
             {isPositive ? "+" : ""}

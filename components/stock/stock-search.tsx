@@ -91,7 +91,7 @@ export function StockSearch() {
         className={cn(
           "relative flex items-center rounded-xl transition-all duration-300",
           "bg-white/5 border border-white/10",
-          isFocused && "border-[#00FF88]/50 bg-white/8 shadow-[0_0_20px_rgba(0,255,136,0.15)]"
+          isFocused && "border-[#00dc82]/50 bg-white/8 shadow-[0_0_20px_rgba(0,220,130,0.15)]"
         )}
       >
         <Search className="absolute left-3 h-4 w-4 text-white/40" />
@@ -125,12 +125,12 @@ export function StockSearch() {
               className={cn(
                 "w-full px-4 py-3 text-left flex items-center justify-between gap-4 transition-colors",
                 "hover:bg-white/5",
-                selectedIndex === index && "bg-[#00FF88]/10"
+                selectedIndex === index && "bg-[#00dc82]/10"
               )}
             >
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5">
-                  <TrendingUp className="h-4 w-4 text-[#00FF88]" />
+                  <TrendingUp className="h-4 w-4 text-[#00dc82]" />
                 </div>
                 <div>
                   <span className="font-semibold text-white">{symbol}</span>

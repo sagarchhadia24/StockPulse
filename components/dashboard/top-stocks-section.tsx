@@ -19,7 +19,7 @@ export function TopStocksSection({
   variant = "default",
 }: TopStocksSectionProps) {
   const Icon = variant === "undervalued" ? TrendingUp : variant === "overvalued" ? TrendingDown : null;
-  const accentColor = variant === "undervalued" ? "#00FF88" : variant === "overvalued" ? "#FF6B6B" : "#8B5CF6";
+  const accentColor = variant === "undervalued" ? "#00dc82" : variant === "overvalued" ? "#f87171" : "#6366f1";
 
   return (
     <section className="relative">

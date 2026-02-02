@@ -50,18 +50,18 @@ export function LiveIndicator({
           <span
             className={cn(
               "absolute inline-flex h-full w-full rounded-full opacity-75",
-              "bg-[#00FF88] animate-ping"
+              "bg-[#00dc82] animate-ping"
             )}
           />
           <span
             className={cn(
               "relative inline-flex rounded-full h-full w-full",
-              "bg-[#00FF88] animate-pulse-glow"
+              "bg-[#00dc82] animate-pulse-glow"
             )}
           />
         </span>
         {showLabel && (
-          <span className="text-xs font-medium text-[#00FF88] uppercase tracking-wider">
+          <span className="text-xs font-medium text-[#00dc82] uppercase tracking-wider">
             Live
           </span>
         )}

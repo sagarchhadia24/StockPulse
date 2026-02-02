@@ -23,15 +23,15 @@ export function ScoreRing({
   const offset = circumference - (score / 100) * circumference;
 
   const getColor = (score: number) => {
-    if (score >= 70) return "#00FF88";
-    if (score >= 40) return "#FFB800";
-    return "#FF6B6B";
+    if (score >= 70) return "#00dc82";
+    if (score >= 40) return "#f59e0b";
+    return "#f87171";
   };
 
   const getGlowColor = (score: number) => {
-    if (score >= 70) return "rgba(0, 255, 136, 0.3)";
-    if (score >= 40) return "rgba(255, 184, 0, 0.3)";
-    return "rgba(255, 107, 107, 0.3)";
+    if (score >= 70) return "rgba(0, 220, 130, 0.3)";
+    if (score >= 40) return "rgba(245, 158, 11, 0.3)";
+    return "rgba(248, 113, 113, 0.3)";
   };
 
   const color = getColor(score);

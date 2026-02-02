@@ -46,8 +46,8 @@ export function Sparkline({
 
   // Determine color based on trend (first vs last value) or prop
   const isUp = positive ?? data[data.length - 1] >= data[0];
-  const color = isUp ? "#00FF88" : "#FF6B6B";
-  const glowColor = isUp ? "rgba(0, 255, 136, 0.4)" : "rgba(255, 107, 107, 0.4)";
+  const color = isUp ? "#00dc82" : "#f87171";
+  const glowColor = isUp ? "rgba(0, 220, 130, 0.4)" : "rgba(248, 113, 113, 0.4)";
 
   // Create gradient fill
   const gradientId = React.useId();

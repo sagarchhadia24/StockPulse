@@ -26,9 +26,9 @@ export function RangeBar({
 
   // Color based on position (near low = red, middle = yellow, near high = green)
   const getColor = () => {
-    if (clampedPosition >= 70) return "#00FF88";
-    if (clampedPosition >= 30) return "#FFB800";
-    return "#FF6B6B";
+    if (clampedPosition >= 70) return "#00dc82";
+    if (clampedPosition >= 30) return "#f59e0b";
+    return "#f87171";
   };
 
   const color = getColor();
@@ -47,7 +47,7 @@ export function RangeBar({
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            background: "linear-gradient(90deg, #FF6B6B 0%, #FFB800 50%, #00FF88 100%)",
+            background: "linear-gradient(90deg, #f87171 0%, #f59e0b 50%, #00dc82 100%)",
             opacity: 0.3,
           }}
         />
@@ -67,7 +67,7 @@ export function RangeBar({
           className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
           style={{
             width: `${clampedPosition}%`,
-            background: `linear-gradient(90deg, #FF6B6B 0%, ${color} 100%)`,
+            background: `linear-gradient(90deg, #f87171 0%, ${color} 100%)`,
             opacity: 0.6,
           }}
         />
