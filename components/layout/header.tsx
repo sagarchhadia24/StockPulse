@@ -9,7 +9,7 @@ import { StockSearch } from "@/components/stock/stock-search";
 export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full glass-strong border-b border-white/5">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container mx-auto flex h-16 items-center justify-between">
         <div className="flex items-center gap-10">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="relative">

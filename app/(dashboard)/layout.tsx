@@ -13,7 +13,7 @@ export default function DashboardLayout({
 
       <div className="relative">
         <Header />
-        <main className="container py-8 px-4 md:px-6">{children}</main>
+        <main className="container mx-auto py-8 px-4 md:px-6">{children}</main>
       </div>
     </div>
   );
