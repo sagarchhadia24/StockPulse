@@ -55,3 +55,29 @@ export const STOCK_SYMBOLS = [
 export const UNIQUE_SYMBOLS = [...new Set(STOCK_SYMBOLS)];
 
 export const SYMBOL_COUNT = UNIQUE_SYMBOLS.length;
+
+// Diverse sample with stocks from every sector (for pages that need limited data)
+export const DIVERSE_SYMBOLS = [
+  // Technology (5)
+  "AAPL", "MSFT", "NVDA", "GOOGL", "CRM",
+  // Healthcare (5)
+  "UNH", "JNJ", "PFE", "ABBV", "CI",
+  // Financials (5)
+  "JPM", "V", "MA", "BAC", "GS",
+  // Consumer Discretionary (5)
+  "AMZN", "TSLA", "HD", "MCD", "NKE",
+  // Consumer Staples (5)
+  "PG", "KO", "PEP", "COST", "WMT",
+  // Energy (5)
+  "XOM", "CVX", "COP", "SLB", "OXY",
+  // Industrials (5)
+  "CAT", "UNP", "HON", "BA", "GE",
+  // Materials (4)
+  "LIN", "APD", "SHW", "FCX",
+  // Real Estate (4)
+  "AMT", "PLD", "EQIX", "O",
+  // Utilities (4)
+  "NEE", "DUK", "SO", "AEP",
+  // Communication Services (4)
+  "NFLX", "DIS", "VZ", "T",
+];

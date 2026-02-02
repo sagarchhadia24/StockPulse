@@ -1,14 +1,15 @@
 import { Suspense } from "react";
 import { StockTable } from "@/components/stock/stock-table";
 import { StockTableSkeleton } from "@/components/stock/stock-table-skeleton";
+import { getMultipleQuotes } from "@/lib/yahoo-finance";
+import { calculateValueScore } from "@/lib/valuation";
+import { DIVERSE_SYMBOLS } from "@/data/symbols";
 
 async function getStocksData() {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/stocks`,
-    { next: { revalidate: 900 } }
-  );
-  if (!res.ok) throw new Error("Failed to fetch stocks");
-  return res.json();
+  // Use diverse sample for balanced sector representation
+  const stocks = await getMultipleQuotes(DIVERSE_SYMBOLS);
+  const scoredStocks = stocks.map(calculateValueScore);
+  return { stocks: scoredStocks };
 }
 
 async function UndervaluedTable() {

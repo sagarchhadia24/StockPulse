@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { StockTable } from "@/components/stock/stock-table";
 import { StockTableSkeleton } from "@/components/stock/stock-table-skeleton";
 import { SECTORS, Sector } from "@/types";
+import { getMultipleQuotes } from "@/lib/yahoo-finance";
+import { calculateValueScore } from "@/lib/valuation";
+import { UNIQUE_SYMBOLS } from "@/data/symbols";
 
 function slugToSector(slug: string): Sector | null {
   const sectorMap: Record<string, Sector> = {
@@ -22,12 +25,10 @@ function slugToSector(slug: string): Sector | null {
 }
 
 async function getStocksData() {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/stocks`,
-    { next: { revalidate: 900 } }
-  );
-  if (!res.ok) throw new Error("Failed to fetch stocks");
-  return res.json();
+  // Fetch all symbols to get accurate sector data
+  const stocks = await getMultipleQuotes(UNIQUE_SYMBOLS);
+  const scoredStocks = stocks.map(calculateValueScore);
+  return { stocks: scoredStocks };
 }
 
 async function SectorStocksTable({ sector }: { sector: Sector }) {

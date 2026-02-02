@@ -51,7 +51,7 @@ function mapSector(yahooSector: string | undefined): Sector {
 
 export async function getStockQuote(symbol: string): Promise<Stock | null> {
   // Return mock data immediately if flag is set
-  const mockFallback = MOCK_STOCKS[symbol.toUpperCase()] || null;
+  const mockFallback = getMockStock(symbol);
   if (USE_MOCK_DATA_ONLY) {
     return mockFallback;
   }
@@ -61,12 +61,16 @@ export async function getStockQuote(symbol: string): Promise<Stock | null> {
     const quote = await yf.quote(symbol) as Record<string, any>;
     if (!quote) return null;
 
+    // Use SYMBOL_SECTORS as source of truth for sector, fallback to Yahoo Finance mapping
+    const upperSymbol = symbol.toUpperCase();
+    const sector = SYMBOL_SECTORS[upperSymbol] || mapSector(quote.sector as string | undefined);
+
     // Quote types have [key: string]: any index signature
     // Some fields like sector, dividendYield, pegRatio are only on certain quote types
     return {
       symbol: quote.symbol,
       name: quote.shortName || quote.longName || symbol,
-      sector: mapSector(quote.sector as string | undefined),
+      sector,
       price: quote.regularMarketPrice || 0,
       change: quote.regularMarketChange || 0,
       changePercent: quote.regularMarketChangePercent || 0,
@@ -128,6 +132,223 @@ const MOCK_INDICES: MarketIndex[] = [
   { symbol: "^DJI", name: "Dow Jones", value: 44544.66, change: 134.13, changePercent: 0.30 },
 ];
 
+// Symbol to sector mapping for all stocks
+const SYMBOL_SECTORS: Record<string, Sector> = {
+  // Technology
+  AAPL: "Technology", MSFT: "Technology", GOOGL: "Technology", GOOG: "Technology",
+  META: "Technology", NVDA: "Technology", AVGO: "Technology", ORCL: "Technology",
+  CRM: "Technology", ADBE: "Technology", AMD: "Technology", INTC: "Technology",
+  CSCO: "Technology", IBM: "Technology", QCOM: "Technology", TXN: "Technology",
+  NOW: "Technology", INTU: "Technology", AMAT: "Technology", MU: "Technology",
+  LRCX: "Technology", ADI: "Technology", KLAC: "Technology", SNPS: "Technology",
+  CDNS: "Technology", MRVL: "Technology", FTNT: "Technology", PANW: "Technology",
+  CRWD: "Technology",
+  // Healthcare
+  UNH: "Healthcare", JNJ: "Healthcare", LLY: "Healthcare", PFE: "Healthcare",
+  ABBV: "Healthcare", MRK: "Healthcare", TMO: "Healthcare", ABT: "Healthcare",
+  DHR: "Healthcare", BMY: "Healthcare", AMGN: "Healthcare", GILD: "Healthcare",
+  VRTX: "Healthcare", REGN: "Healthcare", ISRG: "Healthcare", MDT: "Healthcare",
+  SYK: "Healthcare", ZTS: "Healthcare", BDX: "Healthcare", CI: "Healthcare",
+  ELV: "Healthcare", HUM: "Healthcare", CVS: "Healthcare", MCK: "Healthcare",
+  CAH: "Healthcare",
+  // Financials
+  "BRK-B": "Financials", JPM: "Financials", V: "Financials", MA: "Financials",
+  BAC: "Financials", WFC: "Financials", GS: "Financials", MS: "Financials",
+  BLK: "Financials", SCHW: "Financials", AXP: "Financials", C: "Financials",
+  PNC: "Financials", USB: "Financials", TFC: "Financials", COF: "Financials",
+  CB: "Financials", MMC: "Financials", AON: "Financials", ICE: "Financials",
+  CME: "Financials", SPGI: "Financials", MCO: "Financials", MSCI: "Financials",
+  FIS: "Financials",
+  // Consumer Discretionary
+  AMZN: "Consumer Discretionary", TSLA: "Consumer Discretionary", HD: "Consumer Discretionary",
+  MCD: "Consumer Discretionary", NKE: "Consumer Discretionary", LOW: "Consumer Discretionary",
+  SBUX: "Consumer Discretionary", TJX: "Consumer Discretionary", BKNG: "Consumer Discretionary",
+  MAR: "Consumer Discretionary", ORLY: "Consumer Discretionary", AZO: "Consumer Discretionary",
+  CMG: "Consumer Discretionary", DHI: "Consumer Discretionary", LEN: "Consumer Discretionary",
+  GM: "Consumer Discretionary", F: "Consumer Discretionary", ROST: "Consumer Discretionary",
+  YUM: "Consumer Discretionary", DG: "Consumer Discretionary",
+  // Consumer Staples
+  PG: "Consumer Staples", KO: "Consumer Staples", PEP: "Consumer Staples",
+  COST: "Consumer Staples", WMT: "Consumer Staples", PM: "Consumer Staples",
+  MO: "Consumer Staples", MDLZ: "Consumer Staples", CL: "Consumer Staples",
+  KMB: "Consumer Staples", GIS: "Consumer Staples", K: "Consumer Staples",
+  HSY: "Consumer Staples", STZ: "Consumer Staples", KHC: "Consumer Staples",
+  KR: "Consumer Staples", SYY: "Consumer Staples", ADM: "Consumer Staples",
+  WBA: "Consumer Staples", EL: "Consumer Staples",
+  // Energy
+  XOM: "Energy", CVX: "Energy", COP: "Energy", EOG: "Energy", SLB: "Energy",
+  MPC: "Energy", PSX: "Energy", VLO: "Energy", PXD: "Energy", OXY: "Energy",
+  HES: "Energy", DVN: "Energy", FANG: "Energy", HAL: "Energy", BKR: "Energy",
+  KMI: "Energy", WMB: "Energy", OKE: "Energy", TRGP: "Energy",
+  // Industrials
+  CAT: "Industrials", UNP: "Industrials", HON: "Industrials", UPS: "Industrials",
+  RTX: "Industrials", BA: "Industrials", DE: "Industrials", LMT: "Industrials",
+  GE: "Industrials", MMM: "Industrials", ADP: "Industrials", ITW: "Industrials",
+  EMR: "Industrials", FDX: "Industrials", NSC: "Industrials", CSX: "Industrials",
+  GD: "Industrials", NOC: "Industrials", WM: "Industrials", ETN: "Industrials",
+  PH: "Industrials", PCAR: "Industrials", CMI: "Industrials", ROK: "Industrials",
+  FAST: "Industrials",
+  // Materials
+  LIN: "Materials", APD: "Materials", SHW: "Materials", ECL: "Materials",
+  FCX: "Materials", NEM: "Materials", NUE: "Materials", VMC: "Materials",
+  MLM: "Materials", DOW: "Materials", DD: "Materials", PPG: "Materials",
+  ALB: "Materials", CF: "Materials", MOS: "Materials", IFF: "Materials",
+  CE: "Materials", EMN: "Materials",
+  // Real Estate
+  AMT: "Real Estate", PLD: "Real Estate", CCI: "Real Estate", EQIX: "Real Estate",
+  PSA: "Real Estate", O: "Real Estate", WELL: "Real Estate", DLR: "Real Estate",
+  SPG: "Real Estate", VICI: "Real Estate", AVB: "Real Estate", EQR: "Real Estate",
+  ARE: "Real Estate", MAA: "Real Estate", UDR: "Real Estate", VTR: "Real Estate",
+  HST: "Real Estate", KIM: "Real Estate",
+  // Utilities
+  NEE: "Utilities", DUK: "Utilities", SO: "Utilities", D: "Utilities",
+  AEP: "Utilities", SRE: "Utilities", EXC: "Utilities", XEL: "Utilities",
+  PEG: "Utilities", ED: "Utilities", WEC: "Utilities", ES: "Utilities",
+  AWK: "Utilities", DTE: "Utilities", ETR: "Utilities", FE: "Utilities",
+  PPL: "Utilities", AEE: "Utilities", CMS: "Utilities",
+  // Communication Services
+  NFLX: "Communication Services", DIS: "Communication Services", CMCSA: "Communication Services",
+  VZ: "Communication Services", T: "Communication Services", TMUS: "Communication Services",
+  CHTR: "Communication Services", EA: "Communication Services", TTWO: "Communication Services",
+  WBD: "Communication Services", PARA: "Communication Services", OMC: "Communication Services",
+  IPG: "Communication Services",
+};
+
+// Stock name mapping for common symbols
+const STOCK_NAMES: Record<string, string> = {
+  AAPL: "Apple Inc.", MSFT: "Microsoft Corporation", GOOGL: "Alphabet Inc.",
+  GOOG: "Alphabet Inc.", META: "Meta Platforms Inc.", NVDA: "NVIDIA Corporation",
+  AVGO: "Broadcom Inc.", ORCL: "Oracle Corporation", CRM: "Salesforce Inc.",
+  ADBE: "Adobe Inc.", AMD: "Advanced Micro Devices", INTC: "Intel Corporation",
+  CSCO: "Cisco Systems", IBM: "IBM Corporation", QCOM: "Qualcomm Inc.",
+  TXN: "Texas Instruments", NOW: "ServiceNow Inc.", INTU: "Intuit Inc.",
+  AMAT: "Applied Materials", MU: "Micron Technology", LRCX: "Lam Research",
+  ADI: "Analog Devices", KLAC: "KLA Corporation", SNPS: "Synopsys Inc.",
+  CDNS: "Cadence Design", MRVL: "Marvell Technology", FTNT: "Fortinet Inc.",
+  PANW: "Palo Alto Networks", CRWD: "CrowdStrike Holdings",
+  UNH: "UnitedHealth Group", JNJ: "Johnson & Johnson", LLY: "Eli Lilly",
+  PFE: "Pfizer Inc.", ABBV: "AbbVie Inc.", MRK: "Merck & Co.",
+  TMO: "Thermo Fisher Scientific", ABT: "Abbott Laboratories", DHR: "Danaher Corporation",
+  BMY: "Bristol-Myers Squibb", AMGN: "Amgen Inc.", GILD: "Gilead Sciences",
+  VRTX: "Vertex Pharmaceuticals", REGN: "Regeneron Pharmaceuticals", ISRG: "Intuitive Surgical",
+  MDT: "Medtronic plc", SYK: "Stryker Corporation", ZTS: "Zoetis Inc.",
+  BDX: "Becton Dickinson", CI: "Cigna Group", ELV: "Elevance Health",
+  HUM: "Humana Inc.", CVS: "CVS Health", MCK: "McKesson Corporation",
+  CAH: "Cardinal Health",
+  "BRK-B": "Berkshire Hathaway", JPM: "JPMorgan Chase & Co.", V: "Visa Inc.",
+  MA: "Mastercard Inc.", BAC: "Bank of America", WFC: "Wells Fargo",
+  GS: "Goldman Sachs", MS: "Morgan Stanley", BLK: "BlackRock Inc.",
+  SCHW: "Charles Schwab", AXP: "American Express", C: "Citigroup Inc.",
+  PNC: "PNC Financial", USB: "U.S. Bancorp", TFC: "Truist Financial",
+  COF: "Capital One", CB: "Chubb Limited", MMC: "Marsh McLennan",
+  AON: "Aon plc", ICE: "Intercontinental Exchange", CME: "CME Group",
+  SPGI: "S&P Global", MCO: "Moody's Corporation", MSCI: "MSCI Inc.",
+  FIS: "Fidelity National",
+  AMZN: "Amazon.com Inc.", TSLA: "Tesla Inc.", HD: "Home Depot",
+  MCD: "McDonald's Corp.", NKE: "Nike Inc.", LOW: "Lowe's Companies",
+  SBUX: "Starbucks Corp.", TJX: "TJX Companies", BKNG: "Booking Holdings",
+  MAR: "Marriott International", ORLY: "O'Reilly Automotive", AZO: "AutoZone Inc.",
+  CMG: "Chipotle Mexican Grill", DHI: "D.R. Horton", LEN: "Lennar Corporation",
+  GM: "General Motors", F: "Ford Motor Company", ROST: "Ross Stores",
+  YUM: "Yum! Brands", DG: "Dollar General",
+  PG: "Procter & Gamble", KO: "Coca-Cola Company", PEP: "PepsiCo Inc.",
+  COST: "Costco Wholesale", WMT: "Walmart Inc.", PM: "Philip Morris",
+  MO: "Altria Group", MDLZ: "Mondelez International", CL: "Colgate-Palmolive",
+  KMB: "Kimberly-Clark", GIS: "General Mills", K: "Kellogg Company",
+  HSY: "Hershey Company", STZ: "Constellation Brands", KHC: "Kraft Heinz",
+  KR: "Kroger Co.", SYY: "Sysco Corporation", ADM: "Archer-Daniels-Midland",
+  WBA: "Walgreens Boots Alliance", EL: "Estee Lauder",
+  XOM: "Exxon Mobil", CVX: "Chevron Corporation", COP: "ConocoPhillips",
+  EOG: "EOG Resources", SLB: "Schlumberger", MPC: "Marathon Petroleum",
+  PSX: "Phillips 66", VLO: "Valero Energy", PXD: "Pioneer Natural Resources",
+  OXY: "Occidental Petroleum", HES: "Hess Corporation", DVN: "Devon Energy",
+  FANG: "Diamondback Energy", HAL: "Halliburton", BKR: "Baker Hughes",
+  KMI: "Kinder Morgan", WMB: "Williams Companies", OKE: "ONEOK Inc.",
+  TRGP: "Targa Resources",
+  CAT: "Caterpillar Inc.", UNP: "Union Pacific", HON: "Honeywell International",
+  UPS: "United Parcel Service", RTX: "RTX Corporation", BA: "Boeing Company",
+  DE: "Deere & Company", LMT: "Lockheed Martin", GE: "General Electric",
+  MMM: "3M Company", ADP: "Automatic Data Processing", ITW: "Illinois Tool Works",
+  EMR: "Emerson Electric", FDX: "FedEx Corporation", NSC: "Norfolk Southern",
+  CSX: "CSX Corporation", GD: "General Dynamics", NOC: "Northrop Grumman",
+  WM: "Waste Management", ETN: "Eaton Corporation", PH: "Parker-Hannifin",
+  PCAR: "PACCAR Inc.", CMI: "Cummins Inc.", ROK: "Rockwell Automation",
+  FAST: "Fastenal Company",
+  LIN: "Linde plc", APD: "Air Products", SHW: "Sherwin-Williams",
+  ECL: "Ecolab Inc.", FCX: "Freeport-McMoRan", NEM: "Newmont Corporation",
+  NUE: "Nucor Corporation", VMC: "Vulcan Materials", MLM: "Martin Marietta",
+  DOW: "Dow Inc.", DD: "DuPont de Nemours", PPG: "PPG Industries",
+  ALB: "Albemarle Corporation", CF: "CF Industries", MOS: "Mosaic Company",
+  IFF: "International Flavors", CE: "Celanese Corporation", EMN: "Eastman Chemical",
+  AMT: "American Tower", PLD: "Prologis Inc.", CCI: "Crown Castle",
+  EQIX: "Equinix Inc.", PSA: "Public Storage", O: "Realty Income",
+  WELL: "Welltower Inc.", DLR: "Digital Realty", SPG: "Simon Property Group",
+  VICI: "VICI Properties", AVB: "AvalonBay Communities", EQR: "Equity Residential",
+  ARE: "Alexandria Real Estate", MAA: "Mid-America Apartment", UDR: "UDR Inc.",
+  VTR: "Ventas Inc.", HST: "Host Hotels & Resorts", KIM: "Kimco Realty",
+  NEE: "NextEra Energy", DUK: "Duke Energy", SO: "Southern Company",
+  D: "Dominion Energy", AEP: "American Electric Power", SRE: "Sempra Energy",
+  EXC: "Exelon Corporation", XEL: "Xcel Energy", PEG: "Public Service Enterprise",
+  ED: "Consolidated Edison", WEC: "WEC Energy Group", ES: "Eversource Energy",
+  AWK: "American Water Works", DTE: "DTE Energy", ETR: "Entergy Corporation",
+  FE: "FirstEnergy Corp.", PPL: "PPL Corporation", AEE: "Ameren Corporation",
+  CMS: "CMS Energy",
+  NFLX: "Netflix Inc.", DIS: "Walt Disney Company", CMCSA: "Comcast Corporation",
+  VZ: "Verizon Communications", T: "AT&T Inc.", TMUS: "T-Mobile US",
+  CHTR: "Charter Communications", EA: "Electronic Arts", TTWO: "Take-Two Interactive",
+  WBD: "Warner Bros. Discovery", PARA: "Paramount Global", OMC: "Omnicom Group",
+  IPG: "Interpublic Group",
+};
+
+// Generate deterministic mock data for any symbol
+function generateMockStock(symbol: string): Stock {
+  const sector = SYMBOL_SECTORS[symbol] || "Technology";
+  const name = STOCK_NAMES[symbol] || `${symbol} Corp.`;
+
+  // Use symbol hash for deterministic random values
+  const hash = symbol.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const seededRandom = (seed: number) => {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  };
+
+  const basePrice = 50 + seededRandom(hash) * 400;
+  const changePercent = (seededRandom(hash + 1) - 0.5) * 6;
+  const change = basePrice * (changePercent / 100);
+  const week52High = basePrice * (1 + seededRandom(hash + 2) * 0.3);
+  const week52Low = basePrice * (1 - seededRandom(hash + 3) * 0.3);
+
+  return {
+    symbol,
+    name,
+    sector,
+    price: Math.round(basePrice * 100) / 100,
+    change: Math.round(change * 100) / 100,
+    changePercent: Math.round(changePercent * 100) / 100,
+    marketCap: Math.round(basePrice * 1000000000 * (1 + seededRandom(hash + 4) * 5)),
+    peRatio: Math.round((10 + seededRandom(hash + 5) * 40) * 10) / 10,
+    pbRatio: Math.round((1 + seededRandom(hash + 6) * 10) * 10) / 10,
+    pegRatio: Math.round((0.5 + seededRandom(hash + 7) * 3) * 10) / 10,
+    week52High: Math.round(week52High * 100) / 100,
+    week52Low: Math.round(week52Low * 100) / 100,
+    dividendYield: seededRandom(hash + 8) > 0.3 ? Math.round(seededRandom(hash + 9) * 5 * 100) / 100 : null,
+    volume: Math.round(seededRandom(hash + 10) * 50000000),
+    avgVolume: Math.round(seededRandom(hash + 11) * 50000000),
+  };
+}
+
+// Get mock data for a symbol - uses predefined data if available, otherwise generates it
+function getMockStock(symbol: string): Stock {
+  const upperSymbol = symbol.toUpperCase();
+  if (MOCK_STOCKS[upperSymbol]) {
+    return MOCK_STOCKS[upperSymbol];
+  }
+  if (SYMBOL_SECTORS[upperSymbol]) {
+    return generateMockStock(upperSymbol);
+  }
+  return generateMockStock(upperSymbol);
+}
+
 const MOCK_STOCKS: Record<string, Stock> = {
   AAPL: {
     symbol: "AAPL", name: "Apple Inc.", sector: "Technology",
@@ -165,7 +386,6 @@ const MOCK_STOCKS: Record<string, Stock> = {
     peRatio: 112.5, pbRatio: 16.8, pegRatio: 3.2, week52High: 488.54, week52Low: 138.8,
     dividendYield: null, volume: 95200000, avgVolume: 88500000,
   },
-  // Undervalued stocks (low P/E, low P/B, low PEG relative to sector)
   JPM: {
     symbol: "JPM", name: "JPMorgan Chase & Co.", sector: "Financials",
     price: 195.50, change: 2.35, changePercent: 1.22, marketCap: 565000000000,
