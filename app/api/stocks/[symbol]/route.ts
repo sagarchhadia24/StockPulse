@@ -5,9 +5,10 @@ import { getCached, setCache } from "@/lib/cache";
 
 export async function GET(
   request: Request,
-  { params }: { params: { symbol: string } }
+  { params }: { params: Promise<{ symbol: string }> }
 ) {
-  const symbol = params.symbol.toUpperCase();
+  const { symbol: rawSymbol } = await params;
+  const symbol = rawSymbol.toUpperCase();
   const cacheKey = `stock-${symbol}`;
 
   try {
