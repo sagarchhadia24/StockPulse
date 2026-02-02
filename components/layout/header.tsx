@@ -9,15 +9,15 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full glass-strong border-b border-white/5">
+    <header className="sticky top-0 z-50 w-full glass-strong border-b border-border">
       <div className="container mx-auto flex h-16 items-center justify-between">
         <div className="flex items-center gap-10">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="relative">
-              <Activity className="h-7 w-7 text-[#00FF88] transition-transform group-hover:scale-110" />
-              <div className="absolute inset-0 blur-lg bg-[#00FF88]/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Activity className="h-7 w-7 text-primary transition-transform group-hover:scale-110" />
+              <div className="absolute inset-0 blur-lg bg-primary/30 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            <span className="text-xl font-bold gradient-text tracking-tight">
+            <span className="text-xl font-bold text-primary tracking-tight">
               StockPulse
             </span>
           </Link>

@@ -22,8 +22,8 @@ export function StockCard({ stock }: StockCardProps) {
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-xl font-bold text-white">{stock.symbol}</h3>
-            <p className="text-sm text-white/50 truncate">{stock.name}</p>
+            <h3 className="text-xl font-bold" style={{ color: 'inherit' }}>{stock.symbol}</h3>
+            <p className="text-sm truncate" style={{ opacity: 0.7 }}>{stock.name}</p>
           </div>
           <ScoreRing score={stock.valueScore} size={48} strokeWidth={3} />
         </div>
@@ -44,9 +44,9 @@ export function StockCard({ stock }: StockCardProps) {
           </div>
 
           {/* Metrics */}
-          <div className="flex items-center gap-4 text-xs text-white/40">
-            <span>P/E: <span className="text-white/70">{stock.peRatio?.toFixed(1) || "N/A"}</span></span>
-            <span>Vol: <span className="text-white/70">{formatVolume(stock.volume)}</span></span>
+          <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+            <span>P/E: <span className="text-slate-700 dark:text-slate-300">{stock.peRatio?.toFixed(1) || "N/A"}</span></span>
+            <span>Vol: <span className="text-slate-700 dark:text-slate-300">{formatVolume(stock.volume)}</span></span>
           </div>
 
           {/* 52-Week Range */}

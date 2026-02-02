@@ -37,14 +37,14 @@ export function NavLinks() {
             className={cn(
               "nav-link relative flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
               isActive
-                ? "text-[#00FF88] bg-[#00FF88]/10"
-                : "text-white/60 hover:text-white hover:bg-white/5"
+                ? "text-primary bg-primary/10"
+                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10"
             )}
           >
             <Icon className="h-4 w-4" />
             <span>{link.label}</span>
             {isActive && (
-              <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-gradient-to-r from-[#00FF88] to-[#00D4AA] rounded-full" />
+              <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-primary rounded-full" />
             )}
           </Link>
         );

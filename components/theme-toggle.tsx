@@ -14,8 +14,8 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <button className="p-2 rounded-lg glass hover:bg-white/10 transition-colors">
-        <Sun className="h-5 w-5 text-white/60" />
+      <button className="p-2 rounded-lg glass hover:bg-muted transition-colors">
+        <Sun className="h-5 w-5 text-muted-foreground" />
       </button>
     );
   }
@@ -23,13 +23,13 @@ export function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="p-2 rounded-lg glass hover:bg-white/10 transition-colors"
+      className="p-2 rounded-lg glass hover:bg-muted transition-colors"
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
     >
       {theme === "dark" ? (
-        <Sun className="h-5 w-5 text-[#FFB800] transition-transform hover:rotate-12" />
+        <Sun className="h-5 w-5 text-amber-400 transition-transform hover:rotate-12" />
       ) : (
-        <Moon className="h-5 w-5 text-[#8B5CF6] transition-transform hover:-rotate-12" />
+        <Moon className="h-5 w-5 text-violet-500 transition-transform hover:-rotate-12" />
       )}
     </button>
   );
