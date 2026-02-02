@@ -1,8 +1,7 @@
 import { Suspense } from "react";
-import { MarketOverview } from "@/components/dashboard/market-overview";
+import { HeroSection } from "@/components/dashboard/hero-section";
 import { TopStocksSection } from "@/components/dashboard/top-stocks-section";
 import { StockCardSkeleton } from "@/components/stock/stock-card-skeleton";
-import { Skeleton } from "@/components/ui/skeleton";
 import { getMarketIndices, getMultipleQuotes } from "@/lib/yahoo-finance";
 import { calculateValueScore } from "@/lib/valuation";
 import { UNIQUE_SYMBOLS } from "@/data/symbols";
@@ -20,33 +19,58 @@ async function getStocksData() {
   return { stocks: scoredStocks };
 }
 
-function MarketOverviewSkeleton() {
+function HeroSkeleton() {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="rounded-lg border p-6">
-          <Skeleton className="h-4 w-24 mb-2" />
-          <Skeleton className="h-8 w-32 mb-1" />
-          <Skeleton className="h-4 w-20" />
+    <div className="space-y-6">
+      {/* Header skeleton */}
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div>
+          <div className="h-12 w-64 rounded-lg skeleton-shimmer" />
+          <div className="h-6 w-48 rounded-lg skeleton-shimmer mt-2" />
         </div>
-      ))}
+      </div>
+
+      {/* Market cards skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="rounded-2xl glass p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="h-4 w-20 rounded skeleton-shimmer" />
+                <div className="h-8 w-32 rounded-lg skeleton-shimmer mt-2" />
+                <div className="h-5 w-28 rounded skeleton-shimmer mt-2" />
+              </div>
+              <div className="h-10 w-20 rounded skeleton-shimmer" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
 function TopStocksSkeleton() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <StockCardSkeleton key={i} />
-      ))}
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 rounded-xl skeleton-shimmer" />
+        <div>
+          <div className="h-7 w-48 rounded-lg skeleton-shimmer" />
+          <div className="h-4 w-64 rounded skeleton-shimmer mt-1" />
+        </div>
+      </div>
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <StockCardSkeleton key={i} />
+        ))}
+      </div>
     </div>
   );
 }
 
-async function MarketSection() {
+async function HeroWithData() {
   const { indices } = await getMarketData();
-  return <MarketOverview indices={indices} />;
+  return <HeroSection indices={indices} />;
 }
 
 async function StocksSection() {
@@ -63,35 +87,30 @@ async function StocksSection() {
     .slice(0, 5);
 
   return (
-    <>
+    <div className="space-y-12">
       <TopStocksSection
         title="Top Undervalued Stocks"
         description="Highest value scores - potential buying opportunities"
         stocks={undervalued}
         href="/undervalued"
+        variant="undervalued"
       />
       <TopStocksSection
         title="Most Overvalued Stocks"
         description="Lowest value scores - consider avoiding"
         stocks={overvalued}
         href="/overvalued"
+        variant="overvalued"
       />
-    </>
+    </div>
   );
 }
 
 export default function HomePage() {
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Market Overview</h1>
-        <p className="text-muted-foreground">
-          Track major indices and discover investment opportunities
-        </p>
-      </div>
-
-      <Suspense fallback={<MarketOverviewSkeleton />}>
-        <MarketSection />
+    <div className="space-y-12 pb-8">
+      <Suspense fallback={<HeroSkeleton />}>
+        <HeroWithData />
       </Suspense>
 
       <Suspense fallback={<TopStocksSkeleton />}>
