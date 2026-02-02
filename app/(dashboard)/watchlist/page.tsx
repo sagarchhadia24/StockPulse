@@ -3,24 +3,30 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { LiveIndicator } from "@/components/ui/live-indicator";
 import { toast } from "sonner";
 import { StockWithScore, WatchlistItem } from "@/types";
 import { classifyStock } from "@/lib/valuation";
+import { useLiveStockPrices } from "@/hooks/use-live-prices";
 import { cn } from "@/lib/utils";
 import { Trash2, ExternalLink } from "lucide-react";
 
 export default function WatchlistPage() {
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
-  const [stockData, setStockData] = useState<Record<string, StockWithScore>>({});
   const [loading, setLoading] = useState(true);
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [notesValue, setNotesValue] = useState("");
   const supabase = createClient();
+
+  const symbols = watchlist.map((w) => w.symbol);
+  const { data: stockData, isLive, lastUpdated } = useLiveStockPrices(symbols, {
+    enabled: symbols.length > 0,
+  });
 
   useEffect(() => {
     const fetchWatchlist = async () => {
@@ -37,7 +43,6 @@ export default function WatchlistPage() {
         .order("added_at", { ascending: false });
 
       if (items) {
-        // Map snake_case from Supabase to camelCase for our types
         const mappedItems: WatchlistItem[] = items.map((item: any) => ({
           id: item.id,
           userId: item.user_id,
@@ -46,19 +51,6 @@ export default function WatchlistPage() {
           addedAt: item.added_at,
         }));
         setWatchlist(mappedItems);
-
-        // Fetch stock data for all symbols
-        const symbols = mappedItems.map((i) => i.symbol);
-        const stockRes = await fetch("/api/stocks");
-        const { stocks } = await stockRes.json();
-
-        const stockMap: Record<string, StockWithScore> = {};
-        stocks.forEach((s: StockWithScore) => {
-          if (symbols.includes(s.symbol)) {
-            stockMap[s.symbol] = s;
-          }
-        });
-        setStockData(stockMap);
       }
       setLoading(false);
     };
@@ -136,14 +128,26 @@ export default function WatchlistPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">My Watchlist</h1>
-      <p className="text-muted-foreground">
-        {watchlist.length} stock{watchlist.length !== 1 ? "s" : ""} in your watchlist
-      </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">My Watchlist</h1>
+          <p className="text-muted-foreground">
+            {watchlist.length} stock{watchlist.length !== 1 ? "s" : ""} in your watchlist
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {isLive && <LiveIndicator />}
+          {lastUpdated && (
+            <span className="text-xs text-muted-foreground">
+              Updated {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
+      </div>
 
       <div className="grid gap-4">
         {watchlist.map((item) => {
-          const stock = stockData[item.symbol];
+          const stock = stockData?.[item.symbol];
           const classification = stock ? classifyStock(stock.valueScore) : null;
 
           return (

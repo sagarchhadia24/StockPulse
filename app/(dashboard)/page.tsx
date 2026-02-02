@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import { MarketOverview } from "@/components/dashboard/market-overview";
+import { LiveMarketOverview } from "@/components/dashboard/live-market-overview";
 import { TopStocksSection } from "@/components/dashboard/top-stocks-section";
 import { StockCardSkeleton } from "@/components/stock/stock-card-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 
 async function getMarketData() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/market`, {
-    next: { revalidate: 900 }, // 15 minutes
+    next: { revalidate: 900 },
   });
   if (!res.ok) throw new Error("Failed to fetch market data");
   return res.json();
@@ -46,7 +46,7 @@ function TopStocksSkeleton() {
 
 async function MarketSection() {
   const { indices } = await getMarketData();
-  return <MarketOverview indices={indices} />;
+  return <LiveMarketOverview initialData={indices} />;
 }
 
 async function StocksSection() {
