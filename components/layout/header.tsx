@@ -5,6 +5,7 @@ import { Activity } from "lucide-react";
 import { NavLinks } from "./nav-links";
 import { UserMenuClient } from "./user-menu-client";
 import { StockSearch } from "@/components/stock/stock-search";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Header() {
   return (
@@ -24,6 +25,7 @@ export function Header() {
         </div>
         <div className="flex items-center gap-4">
           <StockSearch />
+          <ThemeToggle />
           <UserMenuClient />
         </div>
       </div>
