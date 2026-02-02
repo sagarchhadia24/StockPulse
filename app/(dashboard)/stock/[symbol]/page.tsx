@@ -1,14 +1,12 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StockChart } from "@/components/stock/stock-chart";
 import { StockMetrics } from "@/components/stock/stock-metrics";
 import { StockNewsList } from "@/components/stock/stock-news";
-import { WatchlistButton } from "@/components/stock/watchlist-button";
-import { classifyStock, getScoreColor } from "@/lib/valuation";
-import { cn } from "@/lib/utils";
+import { LiveStockHeader } from "@/components/stock/live-stock-header";
 
 async function getStockData(symbol: string) {
   const res = await fetch(
@@ -44,55 +42,11 @@ async function StockDetailContent({ symbol }: { symbol: string }) {
   }
 
   const { stock, news, history } = data;
-  const classification = classifyStock(stock.valueScore);
-  const scoreColor = getScoreColor(stock.valueScore);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold">{stock.symbol}</h1>
-            <Badge variant="outline">{stock.sector}</Badge>
-          </div>
-          <p className="text-lg text-muted-foreground">{stock.name}</p>
-          <div className="flex items-center gap-4 mt-2">
-            <span className="text-4xl font-bold">${stock.price.toFixed(2)}</span>
-            <span
-              className={cn(
-                "text-lg",
-                stock.change >= 0 ? "text-green-500" : "text-red-500"
-              )}
-            >
-              {stock.change >= 0 ? "+" : ""}
-              {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <Card className="w-32">
-            <CardContent className="p-4 text-center">
-              <p className="text-sm text-muted-foreground">Value Score</p>
-              <p className={cn("text-3xl font-bold", scoreColor)}>
-                {stock.valueScore}
-              </p>
-              <Badge
-                variant={
-                  classification === "undervalued"
-                    ? "default"
-                    : classification === "overvalued"
-                    ? "destructive"
-                    : "secondary"
-                }
-              >
-                {classification}
-              </Badge>
-            </CardContent>
-          </Card>
-          <WatchlistButton symbol={stock.symbol} variant="full" />
-        </div>
-      </div>
+      {/* Live Header */}
+      <LiveStockHeader symbol={symbol} initialData={stock} />
 
       {/* Chart */}
       <StockChart
