@@ -1,20 +1,30 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StockChart } from "@/components/stock/stock-chart";
 import { StockMetrics } from "@/components/stock/stock-metrics";
 import { StockNewsList } from "@/components/stock/stock-news";
-import { LiveStockHeader } from "@/components/stock/live-stock-header";
+import { WatchlistButton } from "@/components/stock/watchlist-button";
+import { calculateValueScore, classifyStock, getScoreColor } from "@/lib/valuation";
+import { getStockQuote, getStockNews, getHistoricalPrices } from "@/lib/yahoo-finance";
+import { cn } from "@/lib/utils";
 
 async function getStockData(symbol: string) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/stocks/${symbol}`,
-    { next: { revalidate: 900 } }
-  );
-  if (!res.ok) return null;
-  return res.json();
+  const [stock, news, history] = await Promise.all([
+    getStockQuote(symbol),
+    getStockNews(symbol),
+    getHistoricalPrices(symbol, "1y"),
+  ]);
+
+  if (!stock) return null;
+
+  return {
+    stock: calculateValueScore(stock),
+    news,
+    history,
+  };
 }
 
 function StockDetailSkeleton() {
@@ -42,11 +52,55 @@ async function StockDetailContent({ symbol }: { symbol: string }) {
   }
 
   const { stock, news, history } = data;
+  const classification = classifyStock(stock.valueScore);
+  const scoreColor = getScoreColor(stock.valueScore);
 
   return (
     <div className="space-y-6">
-      {/* Live Header */}
-      <LiveStockHeader symbol={symbol} initialData={stock} />
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold">{stock.symbol}</h1>
+            <Badge variant="outline">{stock.sector}</Badge>
+          </div>
+          <p className="text-lg text-muted-foreground">{stock.name}</p>
+          <div className="flex items-center gap-4 mt-2">
+            <span className="text-4xl font-bold">${stock.price.toFixed(2)}</span>
+            <span
+              className={cn(
+                "text-lg",
+                stock.change >= 0 ? "text-green-500" : "text-red-500"
+              )}
+            >
+              {stock.change >= 0 ? "+" : ""}
+              {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <Card className="w-32">
+            <CardContent className="p-4 text-center">
+              <p className="text-sm text-muted-foreground">Value Score</p>
+              <p className={cn("text-3xl font-bold", scoreColor)}>
+                {stock.valueScore}
+              </p>
+              <Badge
+                variant={
+                  classification === "undervalued"
+                    ? "default"
+                    : classification === "overvalued"
+                    ? "destructive"
+                    : "secondary"
+                }
+              >
+                {classification}
+              </Badge>
+            </CardContent>
+          </Card>
+          <WatchlistButton symbol={stock.symbol} variant="full" />
+        </div>
+      </div>
 
       {/* Chart */}
       <StockChart
@@ -90,9 +144,9 @@ async function StockDetailContent({ symbol }: { symbol: string }) {
               </p>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-4">
+          <div className="text-sm text-muted-foreground mt-4">
             Data Quality: <Badge variant="outline">{stock.dataQuality}</Badge>
-          </p>
+          </div>
         </CardContent>
       </Card>
 
