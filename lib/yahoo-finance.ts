@@ -1,11 +1,5 @@
-import YahooFinance from "yahoo-finance2";
+import yahooFinance from "yahoo-finance2";
 import { Stock, StockNews, MarketIndex, Sector } from "@/types";
-
-// Create a single instance of YahooFinance to be reused
-const yahooFinance = new YahooFinance();
-
-// Suppress Yahoo Finance validation warnings in development
-yahooFinance.setGlobalConfig({ notifyRip498: false });
 
 // Map Yahoo Finance sector names to our Sector type
 function mapSector(yahooSector: string | undefined): Sector {
@@ -27,7 +21,7 @@ function mapSector(yahooSector: string | undefined): Sector {
 
 export async function getStockQuote(symbol: string): Promise<Stock | null> {
   try {
-    const quote = await yahooFinance.quote(symbol);
+    const quote = await yahooFinance.quote(symbol) as Record<string, any>;
     if (!quote) return null;
 
     // Quote types have [key: string]: any index signature
@@ -35,17 +29,17 @@ export async function getStockQuote(symbol: string): Promise<Stock | null> {
     return {
       symbol: quote.symbol,
       name: quote.shortName || quote.longName || symbol,
-      sector: mapSector(quote["sector"] as string | undefined),
+      sector: mapSector(quote.sector as string | undefined),
       price: quote.regularMarketPrice || 0,
       change: quote.regularMarketChange || 0,
       changePercent: quote.regularMarketChangePercent || 0,
       marketCap: quote.marketCap || 0,
       peRatio: quote.trailingPE ?? null,
       pbRatio: quote.priceToBook ?? null,
-      pegRatio: (quote["pegRatio"] as number | undefined) ?? null,
+      pegRatio: quote.pegRatio ?? null,
       week52High: quote.fiftyTwoWeekHigh || 0,
       week52Low: quote.fiftyTwoWeekLow || 0,
-      dividendYield: (quote["dividendYield"] as number | undefined) ?? null,
+      dividendYield: quote.dividendYield ?? null,
       volume: quote.regularMarketVolume || 0,
       avgVolume: quote.averageDailyVolume10Day || 0,
     };
@@ -70,13 +64,14 @@ export async function getMultipleQuotes(symbols: string[]): Promise<Stock[]> {
 
 export async function getStockNews(symbol: string): Promise<StockNews[]> {
   try {
-    const result = await yahooFinance.search(symbol, { newsCount: 10 });
-    return (result.news || []).map((item) => ({
+    const result = await yahooFinance.search(symbol, { newsCount: 10 }) as Record<string, any>;
+    const news = result.news || [];
+    return news.map((item: any) => ({
       title: item.title,
       link: item.link,
       source: item.publisher || "Unknown",
       publishedAt: item.providerPublishTime
-        ? item.providerPublishTime.toISOString()
+        ? new Date(item.providerPublishTime * 1000).toISOString()
         : new Date().toISOString(),
       summary: undefined,
     }));
@@ -95,7 +90,7 @@ export async function getMarketIndices(): Promise<MarketIndex[]> {
 
   const results = await Promise.allSettled(
     indexSymbols.map(async ({ symbol, name }) => {
-      const quote = await yahooFinance.quote(symbol);
+      const quote = await yahooFinance.quote(symbol) as Record<string, any> | null;
       return {
         symbol,
         name,
@@ -122,7 +117,7 @@ export async function getHistoricalPrices(
     const result = await yahooFinance.historical(symbol, {
       period1: getStartDate(period),
       period2: new Date(),
-    });
+    }) as Array<{ date: Date; close: number }>;
 
     return result.map((item) => ({
       date: item.date.toISOString().split("T")[0],
