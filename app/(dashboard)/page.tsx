@@ -1,23 +1,23 @@
 import { Suspense } from "react";
-import { LiveMarketOverview } from "@/components/dashboard/live-market-overview";
+import { MarketOverview } from "@/components/dashboard/market-overview";
 import { TopStocksSection } from "@/components/dashboard/top-stocks-section";
 import { StockCardSkeleton } from "@/components/stock/stock-card-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getMarketIndices, getMultipleQuotes } from "@/lib/yahoo-finance";
+import { calculateValueScore } from "@/lib/valuation";
+import { UNIQUE_SYMBOLS } from "@/data/symbols";
 
 async function getMarketData() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/market`, {
-    next: { revalidate: 900 },
-  });
-  if (!res.ok) throw new Error("Failed to fetch market data");
-  return res.json();
+  const indices = await getMarketIndices();
+  return { indices };
 }
 
 async function getStocksData() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/stocks`, {
-    next: { revalidate: 900 },
-  });
-  if (!res.ok) throw new Error("Failed to fetch stocks");
-  return res.json();
+  // Fetch more stocks to include multiple sectors (financials, energy tend to be undervalued)
+  const topSymbols = UNIQUE_SYMBOLS.slice(0, 50);
+  const stocks = await getMultipleQuotes(topSymbols);
+  const scoredStocks = stocks.map(calculateValueScore);
+  return { stocks: scoredStocks };
 }
 
 function MarketOverviewSkeleton() {
@@ -46,7 +46,7 @@ function TopStocksSkeleton() {
 
 async function MarketSection() {
   const { indices } = await getMarketData();
-  return <LiveMarketOverview initialData={indices} />;
+  return <MarketOverview indices={indices} />;
 }
 
 async function StocksSection() {

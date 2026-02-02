@@ -1,15 +1,11 @@
+"use client";
+
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
 import { NavLinks } from "./nav-links";
-import { UserMenu } from "./user-menu";
+import { UserMenuClient } from "./user-menu-client";
 import { StockSearch } from "@/components/stock/stock-search";
 
-export async function Header() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -21,7 +17,7 @@ export async function Header() {
         </div>
         <div className="flex items-center space-x-4">
           <StockSearch />
-          <UserMenu user={user} />
+          <UserMenuClient />
         </div>
       </div>
     </header>

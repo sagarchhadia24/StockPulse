@@ -144,7 +144,7 @@ export function calculateValueScore(stock: Stock): StockWithScore {
   weightedSum += breakdown.weekPositionScore * WEIGHTS.weekPosition;
   totalWeight += WEIGHTS.weekPosition;
 
-  const valueScore = totalWeight > 0 ? Math.round(weightedSum / totalWeight * (totalWeight / (WEIGHTS.pe + WEIGHTS.pb + WEIGHTS.peg + WEIGHTS.weekPosition))) : 50;
+  const valueScore = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 50;
 
   return {
     ...stock,
