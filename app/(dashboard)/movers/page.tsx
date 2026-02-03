@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, RefreshCw } from "lucide-react";
 import { MoversTable } from "@/components/movers/movers-table";
@@ -16,7 +16,7 @@ interface MoversData {
   asOf: string;
 }
 
-export default function MoversPage() {
+function MoversContent() {
   const searchParams = useSearchParams();
   const index = searchParams.get("index") || "sp500";
 
@@ -56,7 +56,9 @@ export default function MoversPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <IndexSelector />
+          <Suspense fallback={<div className="w-[180px] h-9 bg-muted animate-pulse rounded-md" />}>
+            <IndexSelector />
+          </Suspense>
           <Button
             variant="outline"
             size="icon"
@@ -92,5 +94,19 @@ export default function MoversPage() {
         </div>
       ) : null}
     </div>
+  );
+}
+
+export default function MoversPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      }
+    >
+      <MoversContent />
+    </Suspense>
   );
 }
