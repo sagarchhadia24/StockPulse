@@ -10,12 +10,14 @@ import {
   SlidersHorizontal,
   Star,
   GitCompare,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/", label: "Dashboard", icon: Home },
   { href: "/watchlist", label: "Watchlist", icon: Star },
+  { href: "/alerts", label: "Alerts", icon: Bell },
   { href: "/compare", label: "Compare", icon: GitCompare },
   { href: "/undervalued", label: "Undervalued", icon: TrendingUp },
   { href: "/overvalued", label: "Overvalued", icon: TrendingDown },
