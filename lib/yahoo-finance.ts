@@ -133,7 +133,7 @@ const MOCK_INDICES: MarketIndex[] = [
 ];
 
 // Symbol to sector mapping for all stocks
-const SYMBOL_SECTORS: Record<string, Sector> = {
+export const SYMBOL_SECTORS: Record<string, Sector> = {
   // Technology
   AAPL: "Technology", MSFT: "Technology", GOOGL: "Technology", GOOG: "Technology",
   META: "Technology", NVDA: "Technology", AVGO: "Technology", ORCL: "Technology",
