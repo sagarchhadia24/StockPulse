@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Menu, X, Activity } from "lucide-react";
@@ -13,10 +13,15 @@ import { UserMenuClient } from "./user-menu-client";
 export function MobileDrawer() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const prevPathnameRef = useRef(pathname);
 
-  // Close drawer on route change
+  // Close drawer on route change - intentional setState in effect for navigation sync
   useEffect(() => {
-    setIsOpen(false);
+    if (prevPathnameRef.current !== pathname) {
+      prevPathnameRef.current = pathname;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsOpen(false);
+    }
   }, [pathname]);
 
   // Lock body scroll when drawer is open
