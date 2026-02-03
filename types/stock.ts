@@ -137,3 +137,27 @@ export interface UpdateAlertInput {
   status?: AlertStatus;
   threshold?: number;
 }
+
+export interface AIInsight {
+  id: string;
+  symbol: string;
+  summary: string;
+  valuationAnalysis: string;
+  recentPerformance: string;
+  keyConsiderations: string[];
+  inputData: InsightInputData;
+  generatedAt: string;
+}
+
+export interface InsightInputData {
+  price: number;
+  changePercent: number;
+  valueScore: number;
+  classification: string;
+  peRatio: number | null;
+  pbRatio: number | null;
+  pegRatio: number | null;
+  week52High: number;
+  week52Low: number;
+  sector: string;
+}

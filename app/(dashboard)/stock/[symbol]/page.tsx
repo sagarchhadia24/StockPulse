@@ -12,6 +12,7 @@ import { StockNewsList } from "@/components/stock/stock-news";
 import { ValuationHistoryChart } from "@/components/stock/valuation-history-chart";
 import { WatchlistButton } from "@/components/stock/watchlist-button";
 import { SetAlertButton } from "@/components/stock/set-alert-button";
+import { AIInsightSection } from "@/components/stock/ai-insight-section";
 import { calculateValueScore, classifyStock, getScoreColor } from "@/lib/valuation";
 import { getStockQuote, getStockNews, getHistoricalPrices } from "@/lib/yahoo-finance";
 import { cn } from "@/lib/utils";
@@ -132,6 +133,9 @@ async function StockDetailContent({ symbol }: { symbol: string }) {
 
       {/* Valuation History */}
       <ValuationHistoryChart symbol={stock.symbol} />
+
+      {/* AI Insight */}
+      <AIInsightSection symbol={stock.symbol} />
 
       {/* Score Breakdown */}
       <Card>
