@@ -22,6 +22,10 @@ export interface StockWithScore extends Stock {
   dataQuality: "high" | "medium" | "low";
 }
 
+export interface ComparisonStock extends StockWithScore {
+  ytdChange: number | null;
+}
+
 export interface ScoreBreakdown {
   peScore: number | null;
   pbScore: number | null;

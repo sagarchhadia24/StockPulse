@@ -1,6 +1,9 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { GitCompare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StockChart } from "@/components/stock/stock-chart";
@@ -98,7 +101,15 @@ async function StockDetailContent({ symbol }: { symbol: string }) {
               </Badge>
             </CardContent>
           </Card>
-          <WatchlistButton symbol={stock.symbol} variant="full" />
+          <div className="flex flex-col gap-2">
+            <WatchlistButton symbol={stock.symbol} variant="full" />
+            <Link href={`/compare?symbols=${stock.symbol}`}>
+              <Button variant="outline" size="sm" className="gap-2 w-full">
+                <GitCompare className="h-4 w-4" />
+                Compare
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
