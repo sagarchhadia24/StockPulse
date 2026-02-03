@@ -110,3 +110,30 @@ export interface HistoryDataPoint {
   price: number;
   valueScore: number | null;
 }
+
+export type AlertType = 'price_above' | 'price_below' | 'valuation_above' | 'valuation_below';
+export type AlertStatus = 'active' | 'triggered' | 'disabled';
+
+export interface PriceAlert {
+  id: string;
+  userId: string;
+  symbol: string;
+  alertType: AlertType;
+  threshold: number;
+  status: AlertStatus;
+  triggeredAt: string | null;
+  triggeredValue: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateAlertInput {
+  symbol: string;
+  alertType: AlertType;
+  threshold: number;
+}
+
+export interface UpdateAlertInput {
+  status?: AlertStatus;
+  threshold?: number;
+}
