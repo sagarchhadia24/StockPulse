@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, RefreshCw } from "lucide-react";
 import { MoversTable } from "@/components/movers/movers-table";
@@ -24,7 +24,7 @@ export default function MoversPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchMovers = async () => {
+  const fetchMovers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -39,11 +39,11 @@ export default function MoversPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [index]);
 
   useEffect(() => {
     fetchMovers();
-  }, [index]);
+  }, [fetchMovers]);
 
   return (
     <div className="space-y-6">

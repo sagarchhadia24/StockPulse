@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMultipleQuotes } from "@/lib/yahoo-finance";
-import { getTopMovers } from "@/lib/movers";
+import { getTopMovers, MoverStock } from "@/lib/movers";
 import { INDEX_CONFIG, IndexType } from "@/lib/indices";
 import { getCached, setCache } from "@/lib/cache";
 
@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
   const cached = getCached<{
     index: string;
     indexName: string;
-    gainers: any[];
-    losers: any[];
+    gainers: MoverStock[];
+    losers: MoverStock[];
     asOf: string;
   }>(cacheKey);
 
