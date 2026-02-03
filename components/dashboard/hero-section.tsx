@@ -57,7 +57,7 @@ export function HeroSection({ indices }: HeroSectionProps) {
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
             {greeting}
           </h1>
-          <p className="text-lg text-white/50 mt-2">
+          <p className="text-lg text-muted-foreground mt-2">
             Markets are{" "}
             <span
               className={
@@ -107,7 +107,7 @@ export function HeroSection({ indices }: HeroSectionProps) {
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-sm text-white/50 font-medium">{index.name}</p>
+                <p className="text-sm text-muted-foreground font-medium">{index.name}</p>
                 <p className="text-2xl font-bold mt-1 tabular-nums">
                   {index.value.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
@@ -157,10 +157,10 @@ function QuickStat({ icon: Icon, label, value, change }: QuickStatProps) {
   const isPositive = change >= 0;
 
   return (
-    <div className="hidden lg:flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 border border-white/5">
-      <Icon className="h-5 w-5 text-white/40" />
+    <div className="hidden lg:flex items-center gap-3 px-4 py-2 rounded-xl bg-muted/50 border border-border">
+      <Icon className="h-5 w-5 text-muted-foreground" />
       <div>
-        <p className="text-xs text-white/40">{label}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
         <div className="flex items-center gap-2">
           <span className="font-semibold tabular-nums">{value}</span>
           <span
