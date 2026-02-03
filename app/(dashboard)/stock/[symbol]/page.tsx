@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StockChart } from "@/components/stock/stock-chart";
 import { StockMetrics } from "@/components/stock/stock-metrics";
 import { StockNewsList } from "@/components/stock/stock-news";
+import { ValuationHistoryChart } from "@/components/stock/valuation-history-chart";
 import { WatchlistButton } from "@/components/stock/watchlist-button";
 import { calculateValueScore, classifyStock, getScoreColor } from "@/lib/valuation";
 import { getStockQuote, getStockNews, getHistoricalPrices } from "@/lib/yahoo-finance";
@@ -122,6 +123,9 @@ async function StockDetailContent({ symbol }: { symbol: string }) {
 
       {/* Metrics */}
       <StockMetrics stock={stock} />
+
+      {/* Valuation History */}
+      <ValuationHistoryChart symbol={stock.symbol} />
 
       {/* Score Breakdown */}
       <Card>

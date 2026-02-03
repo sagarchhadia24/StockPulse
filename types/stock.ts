@@ -91,3 +91,22 @@ export interface SectorSummary {
   topStock: string;
   topStockScore: number;
 }
+
+export interface ValuationSnapshot {
+  id: string;
+  symbol: string;
+  snapshotDate: string;
+  price: number;
+  valueScore: number;
+  peScore: number | null;
+  pbScore: number | null;
+  pegScore: number | null;
+  weekPositionScore: number;
+  createdAt: string;
+}
+
+export interface HistoryDataPoint {
+  date: string;
+  price: number;
+  valueScore: number | null;
+}
