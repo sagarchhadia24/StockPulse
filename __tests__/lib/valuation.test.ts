@@ -66,7 +66,7 @@ describe("calculateValueScore", () => {
       });
       const result = calculateValueScore(undervaluedStock);
 
-      expect(result.valueScore).toBeGreaterThan(70);
+      expect(result.valueScore).toBeGreaterThan(65);
     });
 
     it("should return lower score for overvalued stock", () => {
@@ -79,7 +79,7 @@ describe("calculateValueScore", () => {
       });
       const result = calculateValueScore(overvaluedStock);
 
-      expect(result.valueScore).toBeLessThan(30);
+      expect(result.valueScore).toBeLessThan(35);
     });
   });
 
@@ -224,9 +224,9 @@ describe("calculateValueScore", () => {
       });
       const result = calculateValueScore(techStock);
 
-      // At sector average, should be around 67 score ((1 - (1-0.5)/1.5) * 100)
-      expect(result.scoreBreakdown.peScore).toBeCloseTo(67, 0);
-      expect(result.scoreBreakdown.pbScore).toBeCloseTo(67, 0);
+      // At sector average, should be 50 (neutral)
+      expect(result.scoreBreakdown.peScore).toBe(50);
+      expect(result.scoreBreakdown.pbScore).toBe(50);
     });
 
     it("should use Financials sector averages correctly", () => {
@@ -238,8 +238,8 @@ describe("calculateValueScore", () => {
       });
       const result = calculateValueScore(financialStock);
 
-      expect(result.scoreBreakdown.peScore).toBeCloseTo(67, 0);
-      expect(result.scoreBreakdown.pbScore).toBeCloseTo(67, 0);
+      expect(result.scoreBreakdown.peScore).toBe(50);
+      expect(result.scoreBreakdown.pbScore).toBe(50);
     });
 
     it("should use Energy sector averages correctly", () => {
@@ -335,33 +335,33 @@ describe("calculateValueScore", () => {
 
 describe("classifyStock", () => {
   describe("classification boundaries", () => {
-    it("should classify score 70 as undervalued", () => {
-      expect(classifyStock(70)).toBe("undervalued");
+    it("should classify score 65 as undervalued", () => {
+      expect(classifyStock(65)).toBe("undervalued");
     });
 
-    it("should classify score above 70 as undervalued", () => {
+    it("should classify score above 65 as undervalued", () => {
       expect(classifyStock(85)).toBe("undervalued");
       expect(classifyStock(100)).toBe("undervalued");
     });
 
-    it("should classify score 40 as fair", () => {
-      expect(classifyStock(40)).toBe("fair");
+    it("should classify score 35 as fair", () => {
+      expect(classifyStock(35)).toBe("fair");
     });
 
-    it("should classify score 69 as fair", () => {
-      expect(classifyStock(69)).toBe("fair");
+    it("should classify score 64 as fair", () => {
+      expect(classifyStock(64)).toBe("fair");
     });
 
-    it("should classify score between 40-69 as fair", () => {
+    it("should classify score between 35-64 as fair", () => {
       expect(classifyStock(50)).toBe("fair");
       expect(classifyStock(55)).toBe("fair");
     });
 
-    it("should classify score 39 as overvalued", () => {
-      expect(classifyStock(39)).toBe("overvalued");
+    it("should classify score 34 as overvalued", () => {
+      expect(classifyStock(34)).toBe("overvalued");
     });
 
-    it("should classify score below 40 as overvalued", () => {
+    it("should classify score below 35 as overvalued", () => {
       expect(classifyStock(20)).toBe("overvalued");
       expect(classifyStock(0)).toBe("overvalued");
     });
@@ -380,54 +380,54 @@ describe("classifyStock", () => {
 
 describe("getScoreColor", () => {
   describe("color assignments", () => {
-    it("should return green for scores >= 70", () => {
-      expect(getScoreColor(70)).toBe("text-green-500");
+    it("should return green for scores >= 65", () => {
+      expect(getScoreColor(65)).toBe("text-green-500");
       expect(getScoreColor(85)).toBe("text-green-500");
       expect(getScoreColor(100)).toBe("text-green-500");
     });
 
-    it("should return yellow for scores 40-69", () => {
-      expect(getScoreColor(40)).toBe("text-yellow-500");
-      expect(getScoreColor(55)).toBe("text-yellow-500");
-      expect(getScoreColor(69)).toBe("text-yellow-500");
+    it("should return yellow for scores 35-64", () => {
+      expect(getScoreColor(35)).toBe("text-yellow-500");
+      expect(getScoreColor(50)).toBe("text-yellow-500");
+      expect(getScoreColor(64)).toBe("text-yellow-500");
     });
 
-    it("should return red for scores < 40", () => {
-      expect(getScoreColor(39)).toBe("text-red-500");
+    it("should return red for scores < 35", () => {
+      expect(getScoreColor(34)).toBe("text-red-500");
       expect(getScoreColor(20)).toBe("text-red-500");
       expect(getScoreColor(0)).toBe("text-red-500");
     });
   });
 
   describe("boundary conditions", () => {
-    it("should correctly handle boundary at 70", () => {
-      expect(getScoreColor(70)).toBe("text-green-500");
-      expect(getScoreColor(69)).toBe("text-yellow-500");
+    it("should correctly handle boundary at 65", () => {
+      expect(getScoreColor(65)).toBe("text-green-500");
+      expect(getScoreColor(64)).toBe("text-yellow-500");
     });
 
-    it("should correctly handle boundary at 40", () => {
-      expect(getScoreColor(40)).toBe("text-yellow-500");
-      expect(getScoreColor(39)).toBe("text-red-500");
+    it("should correctly handle boundary at 35", () => {
+      expect(getScoreColor(35)).toBe("text-yellow-500");
+      expect(getScoreColor(34)).toBe("text-red-500");
     });
   });
 });
 
 describe("getScoreBadgeVariant", () => {
   describe("badge variant assignments", () => {
-    it("should return default for scores >= 70", () => {
-      expect(getScoreBadgeVariant(70)).toBe("default");
+    it("should return default for scores >= 65", () => {
+      expect(getScoreBadgeVariant(65)).toBe("default");
       expect(getScoreBadgeVariant(85)).toBe("default");
       expect(getScoreBadgeVariant(100)).toBe("default");
     });
 
-    it("should return secondary for scores 40-69", () => {
-      expect(getScoreBadgeVariant(40)).toBe("secondary");
-      expect(getScoreBadgeVariant(55)).toBe("secondary");
-      expect(getScoreBadgeVariant(69)).toBe("secondary");
+    it("should return secondary for scores 35-64", () => {
+      expect(getScoreBadgeVariant(35)).toBe("secondary");
+      expect(getScoreBadgeVariant(50)).toBe("secondary");
+      expect(getScoreBadgeVariant(64)).toBe("secondary");
     });
 
-    it("should return destructive for scores < 40", () => {
-      expect(getScoreBadgeVariant(39)).toBe("destructive");
+    it("should return destructive for scores < 35", () => {
+      expect(getScoreBadgeVariant(34)).toBe("destructive");
       expect(getScoreBadgeVariant(20)).toBe("destructive");
       expect(getScoreBadgeVariant(0)).toBe("destructive");
     });

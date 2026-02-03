@@ -21,16 +21,18 @@ const SECTOR_AVERAGES: Record<Sector, SectorAverages> = {
 };
 
 // Weights for each factor
+// Reduced 52-week position weight as it's a momentum indicator, not fundamental valuation
 const WEIGHTS = {
-  pe: 0.30,
-  pb: 0.20,
-  peg: 0.25,
-  weekPosition: 0.25,
+  pe: 0.35,
+  pb: 0.25,
+  peg: 0.30,
+  weekPosition: 0.10,
 };
 
 /**
  * Calculate P/E score (0-100)
  * Lower P/E compared to sector average = higher score
+ * Score 50 at sector average (ratio = 1.0)
  */
 function calculatePEScore(peRatio: number | null, sector: Sector): number | null {
   if (peRatio === null || peRatio <= 0) return null;
@@ -38,16 +40,17 @@ function calculatePEScore(peRatio: number | null, sector: Sector): number | null
   const sectorAvg = SECTOR_AVERAGES[sector].avgPE;
   const ratio = peRatio / sectorAvg;
 
-  // Score: 100 if PE is 50% below average, 0 if PE is 100% above average
+  // Score: 100 at 0.5x average, 50 at 1x average, 0 at 2x average
   if (ratio <= 0.5) return 100;
   if (ratio >= 2) return 0;
-
-  return Math.round(100 - ((ratio - 0.5) / 1.5) * 100);
+  if (ratio <= 1) return Math.round(100 - ((ratio - 0.5) / 0.5) * 50);
+  return Math.round(50 - ((ratio - 1) / 1) * 50);
 }
 
 /**
  * Calculate P/B score (0-100)
  * Lower P/B compared to sector average = higher score
+ * Score 50 at sector average (ratio = 1.0)
  */
 function calculatePBScore(pbRatio: number | null, sector: Sector): number | null {
   if (pbRatio === null || pbRatio <= 0) return null;
@@ -55,24 +58,26 @@ function calculatePBScore(pbRatio: number | null, sector: Sector): number | null
   const sectorAvg = SECTOR_AVERAGES[sector].avgPB;
   const ratio = pbRatio / sectorAvg;
 
+  // Score: 100 at 0.5x average, 50 at 1x average, 0 at 2x average
   if (ratio <= 0.5) return 100;
   if (ratio >= 2) return 0;
-
-  return Math.round(100 - ((ratio - 0.5) / 1.5) * 100);
+  if (ratio <= 1) return Math.round(100 - ((ratio - 0.5) / 0.5) * 50);
+  return Math.round(50 - ((ratio - 1) / 1) * 50);
 }
 
 /**
  * Calculate PEG score (0-100)
- * PEG < 1 is considered undervalued
+ * PEG < 1 is considered undervalued, PEG = 1 is fair value
+ * Score 50 at PEG = 1.0
  */
 function calculatePEGScore(pegRatio: number | null): number | null {
   if (pegRatio === null || pegRatio <= 0) return null;
 
-  // PEG of 0.5 or less = 100, PEG of 2 or more = 0
+  // Score: 100 at PEG 0.5, 50 at PEG 1.0, 0 at PEG 2.0
   if (pegRatio <= 0.5) return 100;
   if (pegRatio >= 2) return 0;
-
-  return Math.round(100 - ((pegRatio - 0.5) / 1.5) * 100);
+  if (pegRatio <= 1) return Math.round(100 - ((pegRatio - 0.5) / 0.5) * 50);
+  return Math.round(50 - ((pegRatio - 1) / 1) * 50);
 }
 
 /**
@@ -156,10 +161,11 @@ export function calculateValueScore(stock: Stock): StockWithScore {
 
 /**
  * Classify stock based on value score
+ * Thresholds adjusted so average stocks (score ~50) fall in "fair" range
  */
 export function classifyStock(score: number): "undervalued" | "fair" | "overvalued" {
-  if (score >= 70) return "undervalued";
-  if (score >= 40) return "fair";
+  if (score >= 65) return "undervalued";
+  if (score >= 35) return "fair";
   return "overvalued";
 }
 
@@ -167,8 +173,8 @@ export function classifyStock(score: number): "undervalued" | "fair" | "overvalu
  * Get score color class
  */
 export function getScoreColor(score: number): string {
-  if (score >= 70) return "text-green-500";
-  if (score >= 40) return "text-yellow-500";
+  if (score >= 65) return "text-green-500";
+  if (score >= 35) return "text-yellow-500";
   return "text-red-500";
 }
 
@@ -176,7 +182,7 @@ export function getScoreColor(score: number): string {
  * Get score badge variant
  */
 export function getScoreBadgeVariant(score: number): "default" | "secondary" | "destructive" {
-  if (score >= 70) return "default"; // green-ish
-  if (score >= 40) return "secondary"; // neutral
+  if (score >= 65) return "default"; // green-ish
+  if (score >= 35) return "secondary"; // neutral
   return "destructive"; // red
 }
