@@ -3,13 +3,25 @@ import { StockTable } from "@/components/stock/stock-table";
 import { StockTableSkeleton } from "@/components/stock/stock-table-skeleton";
 import { getMultipleQuotes } from "@/lib/yahoo-finance";
 import { calculateValueScore } from "@/lib/valuation";
-import { DIVERSE_SYMBOLS } from "@/data/symbols";
+import { ALL_SYMBOLS } from "@/data/symbols";
 
 async function getStocksData() {
-  // Use diverse sample for balanced sector representation
-  const stocks = await getMultipleQuotes(DIVERSE_SYMBOLS);
-  const scoredStocks = stocks.map(calculateValueScore);
-  return { stocks: scoredStocks };
+  // Process in batches for reliability
+  const BATCH_SIZE = 30;
+  const allStocks: any[] = [];
+
+  for (let i = 0; i < ALL_SYMBOLS.length; i += BATCH_SIZE) {
+    const batch = ALL_SYMBOLS.slice(i, i + BATCH_SIZE);
+    try {
+      const stocks = await getMultipleQuotes(batch);
+      const scoredStocks = stocks.map(calculateValueScore);
+      allStocks.push(...scoredStocks);
+    } catch (error) {
+      console.warn(`Batch starting at ${i} failed, continuing...`);
+    }
+  }
+
+  return { stocks: allStocks };
 }
 
 async function UndervaluedTable() {
@@ -30,6 +42,7 @@ export default function UndervaluedPage() {
         <p className="text-muted-foreground">
           Stocks with value scores of 70 or higher - potential buying opportunities
           based on P/E, P/B, PEG ratios and 52-week position.
+          Scanning {ALL_SYMBOLS.length} stocks from S&P 500, NASDAQ-100, and Dow Jones.
         </p>
       </div>
 
