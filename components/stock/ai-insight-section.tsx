@@ -183,6 +183,13 @@ export function AIInsightSection({ symbol }: AIInsightSectionProps) {
                   </li>
                 ))}
               </ul>
+              {insight.keyConsiderations.length === 1 &&
+               insight.keyConsiderations[0].includes("Analysis based on") && (
+                <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                  <RefreshCw className="h-3 w-3" />
+                  Try refreshing for more detailed considerations
+                </p>
+              )}
             </div>
 
             {/* Disclaimer */}

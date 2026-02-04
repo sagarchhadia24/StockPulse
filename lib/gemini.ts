@@ -53,29 +53,58 @@ Be objective and data-driven. Avoid hype or recommendations to buy/sell. Use the
 }
 
 function parseGeminiResponse(text: string): GeneratedInsight {
-  // Parse the structured response
-  const summaryMatch = text.match(/SUMMARY:\s*([\s\S]*?)(?=VALUATION_ANALYSIS:|$)/i);
-  const valuationMatch = text.match(/VALUATION_ANALYSIS:\s*([\s\S]*?)(?=RECENT_PERFORMANCE:|$)/i);
-  const performanceMatch = text.match(/RECENT_PERFORMANCE:\s*([\s\S]*?)(?=KEY_CONSIDERATIONS:|$)/i);
-  const considerationsMatch = text.match(/KEY_CONSIDERATIONS:\s*([\s\S]*?)$/i);
+  // Normalize text - handle various formatting issues
+  const normalizedText = text
+    .replace(/\*\*/g, '') // Remove bold markers
+    .replace(/\r\n/g, '\n') // Normalize line endings
+    .trim();
+
+  // Parse the structured response with flexible matching
+  // Support variations like "SUMMARY:", "**SUMMARY:**", "Summary:", etc.
+  const summaryMatch = normalizedText.match(/(?:^|\n)\s*\*?\*?SUMMARY\*?\*?:?\s*([\s\S]*?)(?=\n\s*\*?\*?VALUATION|$)/i);
+  const valuationMatch = normalizedText.match(/(?:^|\n)\s*\*?\*?VALUATION[_\s]?ANALYSIS\*?\*?:?\s*([\s\S]*?)(?=\n\s*\*?\*?RECENT|$)/i);
+  const performanceMatch = normalizedText.match(/(?:^|\n)\s*\*?\*?RECENT[_\s]?PERFORMANCE\*?\*?:?\s*([\s\S]*?)(?=\n\s*\*?\*?KEY|$)/i);
+  const considerationsMatch = normalizedText.match(/(?:^|\n)\s*\*?\*?KEY[_\s]?CONSIDERATIONS\*?\*?:?\s*([\s\S]*?)$/i);
 
   const summary = summaryMatch?.[1]?.trim() || "Analysis unavailable.";
   const valuationAnalysis = valuationMatch?.[1]?.trim() || "";
   const recentPerformance = performanceMatch?.[1]?.trim() || "";
 
-  // Parse bullet points
+  // Parse bullet points with flexible matching
+  // Support: -, *, •, numbered lists (1., 1), etc.
   const considerationsText = considerationsMatch?.[1] || "";
   const keyConsiderations = considerationsText
     .split(/\n/)
-    .map(line => line.replace(/^[-•*]\s*/, '').trim())
-    .filter(line => line.length > 0)
-    .slice(0, 3);
+    .map(line => line
+      .replace(/^\s*[-•*]\s*/, '') // Bullet points
+      .replace(/^\s*\d+[.)]\s*/, '') // Numbered lists
+      .replace(/^\s*\*\*/, '') // Bold markers at start
+      .replace(/\*\*\s*$/, '') // Bold markers at end
+      .trim()
+    )
+    .filter(line => line.length > 5) // Filter out empty or very short lines
+    .slice(0, 5); // Allow up to 5 considerations
+
+  // If no considerations found, try to extract any bullet-like content from the whole response
+  let finalConsiderations = keyConsiderations;
+  if (finalConsiderations.length === 0) {
+    // Fallback: look for any bullet points in the entire text
+    const bulletMatches = normalizedText.match(/(?:^|\n)\s*[-•*]\s*(.+)/gm);
+    if (bulletMatches) {
+      finalConsiderations = bulletMatches
+        .map(match => match.replace(/^\s*[-•*]\s*/, '').trim())
+        .filter(line => line.length > 10)
+        .slice(-3); // Take last 3 (likely the considerations)
+    }
+  }
 
   return {
     summary,
     valuationAnalysis,
     recentPerformance,
-    keyConsiderations: keyConsiderations.length > 0 ? keyConsiderations : ["No specific considerations identified."],
+    keyConsiderations: finalConsiderations.length > 0
+      ? finalConsiderations
+      : ["Analysis based on current valuation metrics and market position."],
   };
 }
 
