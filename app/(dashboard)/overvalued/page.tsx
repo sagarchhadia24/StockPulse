@@ -1,9 +1,9 @@
 import { Suspense } from "react";
-import { StockTable } from "@/components/stock/stock-table";
 import { StockTableSkeleton } from "@/components/stock/stock-table-skeleton";
 import { getMultipleQuotes } from "@/lib/yahoo-finance";
 import { calculateValueScore } from "@/lib/valuation";
 import { ALL_SYMBOLS } from "@/data/symbols";
+import { OvervaluedContent } from "./overvalued-content";
 
 async function getStocksData() {
   // Process in batches for reliability
@@ -24,14 +24,14 @@ async function getStocksData() {
   return { stocks: allStocks };
 }
 
-async function OvervaluedTable() {
+async function OvervaluedData() {
   const { stocks } = await getStocksData();
 
   const overvalued = stocks
     .filter((s: any) => s.valueScore < 40)
     .sort((a: any, b: any) => a.valueScore - b.valueScore);
 
-  return <StockTable stocks={overvalued} />;
+  return <OvervaluedContent stocks={overvalued} />;
 }
 
 export default function OvervaluedPage() {
@@ -47,7 +47,7 @@ export default function OvervaluedPage() {
       </div>
 
       <Suspense fallback={<StockTableSkeleton rows={20} />}>
-        <OvervaluedTable />
+        <OvervaluedData />
       </Suspense>
     </div>
   );

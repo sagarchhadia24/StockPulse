@@ -1,9 +1,9 @@
 import { Suspense } from "react";
-import { StockTable } from "@/components/stock/stock-table";
 import { StockTableSkeleton } from "@/components/stock/stock-table-skeleton";
 import { getMultipleQuotes } from "@/lib/yahoo-finance";
 import { calculateValueScore } from "@/lib/valuation";
 import { ALL_SYMBOLS } from "@/data/symbols";
+import { UndervaluedContent } from "./undervalued-content";
 
 async function getStocksData() {
   // Process in batches for reliability
@@ -24,14 +24,14 @@ async function getStocksData() {
   return { stocks: allStocks };
 }
 
-async function UndervaluedTable() {
+async function UndervaluedData() {
   const { stocks } = await getStocksData();
 
   const undervalued = stocks
     .filter((s: any) => s.valueScore >= 70)
     .sort((a: any, b: any) => b.valueScore - a.valueScore);
 
-  return <StockTable stocks={undervalued} />;
+  return <UndervaluedContent stocks={undervalued} />;
 }
 
 export default function UndervaluedPage() {
@@ -47,7 +47,7 @@ export default function UndervaluedPage() {
       </div>
 
       <Suspense fallback={<StockTableSkeleton rows={20} />}>
-        <UndervaluedTable />
+        <UndervaluedData />
       </Suspense>
     </div>
   );
