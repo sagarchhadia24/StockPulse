@@ -74,14 +74,18 @@ describe("StockCard", () => {
       const stock = createMockStockWithScore({ peRatio: 28.5 });
       render(<StockCard stock={stock} />);
 
-      expect(screen.getByText("P/E: 28.5")).toBeInTheDocument();
+      // P/E label and value are in separate elements
+      expect(screen.getByText("28.5")).toBeInTheDocument();
+      expect(screen.getByText(/P\/E:/)).toBeInTheDocument();
     });
 
     it('renders "N/A" when P/E ratio is null', () => {
       const stock = createMockStockWithScore({ peRatio: null });
       render(<StockCard stock={stock} />);
 
-      expect(screen.getByText("P/E: N/A")).toBeInTheDocument();
+      // P/E label and N/A value are in separate elements
+      expect(screen.getByText("N/A")).toBeInTheDocument();
+      expect(screen.getByText(/P\/E:/)).toBeInTheDocument();
     });
 
     it("renders 52-week range", () => {
@@ -91,11 +95,14 @@ describe("StockCard", () => {
       });
       render(<StockCard stock={stock} />);
 
-      expect(screen.getByText("52W: $100-$200")).toBeInTheDocument();
+      // RangeBar component renders low/high values and label separately
+      expect(screen.getByText("$100")).toBeInTheDocument();
+      expect(screen.getByText("$200")).toBeInTheDocument();
+      expect(screen.getByText("52W Range")).toBeInTheDocument();
     });
   });
 
-  describe("value score badge", () => {
+  describe("value score display", () => {
     it("displays the value score", () => {
       const stock = createMockStockWithScore({ valueScore: 75 });
       render(<StockCard stock={stock} />);
@@ -103,31 +110,31 @@ describe("StockCard", () => {
       expect(screen.getByText("75")).toBeInTheDocument();
     });
 
-    it("renders badge with correct variant for undervalued stock (score >= 70)", () => {
+    it("renders ScoreRing with green color for undervalued stock (score >= 70)", () => {
       const stock = createMockStockWithScore({ valueScore: 75 });
       const { container } = render(<StockCard stock={stock} />);
 
-      // Check for badge with default variant (bg-primary class)
-      const badge = container.querySelector('[class*="bg-primary"]');
-      expect(badge).toBeInTheDocument();
+      // ScoreRing uses green (#00dc82) for high scores
+      const scoreCircle = container.querySelector('circle[stroke="#00dc82"]');
+      expect(scoreCircle).toBeInTheDocument();
     });
 
-    it("renders badge with secondary variant for fair value stock (40-69)", () => {
+    it("renders ScoreRing with yellow color for fair value stock (40-69)", () => {
       const stock = createMockStockWithScore({ valueScore: 55 });
       const { container } = render(<StockCard stock={stock} />);
 
-      // Check for badge with secondary variant
-      const badge = container.querySelector('[class*="bg-secondary"]');
-      expect(badge).toBeInTheDocument();
+      // ScoreRing uses yellow (#f59e0b) for medium scores
+      const scoreCircle = container.querySelector('circle[stroke="#f59e0b"]');
+      expect(scoreCircle).toBeInTheDocument();
     });
 
-    it("renders badge with destructive variant for overvalued stock (< 40)", () => {
+    it("renders ScoreRing with red color for overvalued stock (< 40)", () => {
       const stock = createMockStockWithScore({ valueScore: 30 });
       const { container } = render(<StockCard stock={stock} />);
 
-      // Check for badge with destructive variant
-      const badge = container.querySelector('[class*="bg-destructive"]');
-      expect(badge).toBeInTheDocument();
+      // ScoreRing uses red (#f87171) for low scores
+      const scoreCircle = container.querySelector('circle[stroke="#f87171"]');
+      expect(scoreCircle).toBeInTheDocument();
     });
   });
 
@@ -139,13 +146,13 @@ describe("StockCard", () => {
       });
       const { container } = render(<StockCard stock={stock} />);
 
-      // Check for the change text
-      expect(screen.getByText("+5.25 (3.10%)")).toBeInTheDocument();
+      // PriceChange component shows value and percentage separately with dot separator
+      expect(screen.getByText("+5.25")).toBeInTheDocument();
+      expect(screen.getByText("+3.10%")).toBeInTheDocument();
 
-      // Check for green color class
-      const changeElement = container.querySelector(".text-green-500");
+      // Check for green color class (uses custom green #00dc82)
+      const changeElement = container.querySelector(".text-\\[\\#00dc82\\]");
       expect(changeElement).toBeInTheDocument();
-      expect(changeElement).toHaveTextContent("+5.25 (3.10%)");
     });
 
     it("shows negative change with red color and minus sign", () => {
@@ -155,25 +162,28 @@ describe("StockCard", () => {
       });
       const { container } = render(<StockCard stock={stock} />);
 
-      // Check for the change text (no plus sign for negative)
-      expect(screen.getByText("-4.75 (-2.65%)")).toBeInTheDocument();
+      // PriceChange component shows value and percentage separately
+      expect(screen.getByText("-4.75")).toBeInTheDocument();
+      expect(screen.getByText("-2.65%")).toBeInTheDocument();
 
-      // Check for red color class
-      const changeElement = container.querySelector(".text-red-500");
+      // Check for red color class (uses custom red #f87171)
+      const changeElement = container.querySelector(".text-\\[\\#f87171\\]");
       expect(changeElement).toBeInTheDocument();
-      expect(changeElement).toHaveTextContent("-4.75 (-2.65%)");
     });
 
-    it("shows zero change with green color and plus sign", () => {
+    it("shows zero change with neutral styling", () => {
       const stock = createMockStockWithScore({
         change: 0,
         changePercent: 0,
       });
       const { container } = render(<StockCard stock={stock} />);
 
-      expect(screen.getByText("+0.00 (0.00%)")).toBeInTheDocument();
+      // Zero values shown without plus sign
+      expect(screen.getByText("0.00")).toBeInTheDocument();
+      expect(screen.getByText("0.00%")).toBeInTheDocument();
 
-      const changeElement = container.querySelector(".text-green-500");
+      // Zero change uses neutral white/60 color
+      const changeElement = container.querySelector(".text-white\\/60");
       expect(changeElement).toBeInTheDocument();
     });
   });
@@ -247,7 +257,9 @@ describe("StockCard", () => {
       });
       render(<StockCard stock={stock} />);
 
-      expect(screen.getByText("P/E: N/A")).toBeInTheDocument();
+      // P/E label and N/A value are in separate elements
+      expect(screen.getByText("N/A")).toBeInTheDocument();
+      expect(screen.getByText(/P\/E:/)).toBeInTheDocument();
     });
   });
 
