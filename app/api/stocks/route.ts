@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { getMultipleQuotes } from "@/lib/yahoo-finance";
 import { calculateValueScore } from "@/lib/valuation";
 import { getCached, setCache } from "@/lib/cache";
-import { UNIQUE_SYMBOLS } from "@/data/symbols";
+import { ALL_SYMBOLS } from "@/data/symbols";
 import { StockWithScore, Stock } from "@/types";
 
 const CACHE_KEY = "all-stocks";
-const BATCH_SIZE = 50;
-const FETCH_TIMEOUT_MS = 30000; // 30 second total timeout for all fetches
+const BATCH_SIZE = 30;
+const BATCH_DELAY_MS = 50;
+const FETCH_TIMEOUT_MS = 120000; // 120 second total timeout for all fetches
 
 // Mock stocks for immediate response when Yahoo Finance is unavailable
 const MOCK_STOCKS: Stock[] = [
@@ -25,15 +26,25 @@ const MOCK_STOCKS: Stock[] = [
 
 async function fetchWithTimeout(): Promise<StockWithScore[]> {
   const allStocks: StockWithScore[] = [];
+  const totalBatches = Math.ceil(ALL_SYMBOLS.length / BATCH_SIZE);
 
-  for (let i = 0; i < UNIQUE_SYMBOLS.length; i += BATCH_SIZE) {
-    const batch = UNIQUE_SYMBOLS.slice(i, i + BATCH_SIZE);
-    const stocks = await getMultipleQuotes(batch);
-    const scoredStocks = stocks.map(calculateValueScore);
-    allStocks.push(...scoredStocks);
+  for (let i = 0; i < ALL_SYMBOLS.length; i += BATCH_SIZE) {
+    const batch = ALL_SYMBOLS.slice(i, i + BATCH_SIZE);
+    const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
 
-    if (i + BATCH_SIZE < UNIQUE_SYMBOLS.length) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    try {
+      const stocks = await getMultipleQuotes(batch);
+      const scoredStocks = stocks.map(calculateValueScore);
+      allStocks.push(...scoredStocks);
+
+      console.log(`Processed batch ${batchNumber}/${totalBatches} (${allStocks.length} stocks)`);
+    } catch (error) {
+      console.warn(`Batch ${batchNumber} failed, continuing...`, error);
+    }
+
+    // Add small delay between batches to avoid rate limiting
+    if (i + BATCH_SIZE < ALL_SYMBOLS.length) {
+      await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY_MS));
     }
   }
 
