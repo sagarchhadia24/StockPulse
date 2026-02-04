@@ -13,6 +13,11 @@ export function StockMetrics({ stock }: StockMetricsProps) {
     { label: "P/E Ratio", value: stock.peRatio?.toFixed(2) || "N/A" },
     { label: "P/B Ratio", value: stock.pbRatio?.toFixed(2) || "N/A" },
     { label: "PEG Ratio", value: stock.pegRatio?.toFixed(2) || "N/A" },
+    { label: "P/S Ratio", value: stock.psRatio?.toFixed(2) || "N/A" },
+    {
+      label: "Revenue Growth",
+      value: stock.revenueGrowth !== null ? `${(stock.revenueGrowth * 100).toFixed(1)}%` : "N/A",
+    },
     {
       label: "Market Cap",
       value: formatMarketCap(stock.marketCap),

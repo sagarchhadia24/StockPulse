@@ -13,13 +13,13 @@ import { ValuationHistoryChart } from "@/components/stock/valuation-history-char
 import { WatchlistButton } from "@/components/stock/watchlist-button";
 import { SetAlertButton } from "@/components/stock/set-alert-button";
 import { AIInsightSection } from "@/components/stock/ai-insight-section";
-import { calculateValueScore, classifyStock, getScoreColor } from "@/lib/valuation";
+import { calculateValueScore, classifyStock, getScoreColor, getStockTypeLabel, getStockTypeColor, getWeightProfile } from "@/lib/valuation";
 import { getStockQuote, getStockNews, getHistoricalPrices } from "@/lib/yahoo-finance";
 import { cn } from "@/lib/utils";
 
 async function getStockData(symbol: string) {
   const [stock, news, history] = await Promise.all([
-    getStockQuote(symbol),
+    getStockQuote(symbol, { includeExtendedData: true }), // Fetch revenue growth for detail page
     getStockNews(symbol),
     getHistoricalPrices(symbol, "1y"),
   ]);
@@ -60,6 +60,7 @@ async function StockDetailContent({ symbol }: { symbol: string }) {
   const { stock, news, history } = data;
   const classification = classifyStock(stock.valueScore);
   const scoreColor = getScoreColor(stock.valueScore);
+  const weights = getWeightProfile(stock.stockType);
 
   return (
     <div className="space-y-6">
@@ -69,6 +70,9 @@ async function StockDetailContent({ symbol }: { symbol: string }) {
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold">{stock.symbol}</h1>
             <Badge variant="outline">{stock.sector}</Badge>
+            <span className={cn("px-2 py-0.5 text-xs font-medium rounded-full", getStockTypeColor(stock.stockType))}>
+              {getStockTypeLabel(stock.stockType)}
+            </span>
           </div>
           <p className="text-lg text-muted-foreground">{stock.name}</p>
           <div className="flex items-center gap-4 mt-2">
@@ -140,30 +144,47 @@ async function StockDetailContent({ symbol }: { symbol: string }) {
       {/* Score Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle>Score Breakdown</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Score Breakdown
+            <span className={cn("px-2 py-0.5 text-xs font-medium rounded-full", getStockTypeColor(stock.stockType))}>
+              {getStockTypeLabel(stock.stockType)} Weights
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">P/E Score (30%)</p>
+              <p className="text-sm text-muted-foreground">P/E Score ({Math.round(weights.pe * 100)}%)</p>
               <p className="text-lg font-semibold">
                 {stock.scoreBreakdown.peScore?.toFixed(0) || "N/A"}
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">P/B Score (20%)</p>
+              <p className="text-sm text-muted-foreground">P/B Score ({Math.round(weights.pb * 100)}%)</p>
               <p className="text-lg font-semibold">
                 {stock.scoreBreakdown.pbScore?.toFixed(0) || "N/A"}
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">PEG Score (25%)</p>
+              <p className="text-sm text-muted-foreground">PEG Score ({Math.round(weights.peg * 100)}%)</p>
               <p className="text-lg font-semibold">
                 {stock.scoreBreakdown.pegScore?.toFixed(0) || "N/A"}
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">52W Position (25%)</p>
+              <p className="text-sm text-muted-foreground">P/S Score ({Math.round(weights.ps * 100)}%)</p>
+              <p className="text-lg font-semibold">
+                {stock.scoreBreakdown.psScore?.toFixed(0) || "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Rev Growth ({Math.round(weights.revenueGrowth * 100)}%)</p>
+              <p className="text-lg font-semibold">
+                {stock.scoreBreakdown.revenueGrowthScore?.toFixed(0) || "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">52W Position ({Math.round(weights.weekPosition * 100)}%)</p>
               <p className="text-lg font-semibold">
                 {stock.scoreBreakdown.weekPositionScore.toFixed(0)}
               </p>
