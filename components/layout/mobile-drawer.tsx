@@ -80,7 +80,7 @@ export function MobileDrawer() {
       {/* Drawer */}
       <div
         className={cn(
-          "fixed top-0 left-0 z-[60] h-full w-[280px] glass-strong border-r border-border",
+          "fixed top-0 left-0 z-[60] h-full w-[280px] bg-sidebar border-r border-border",
           "transform transition-transform duration-300 ease-out md:hidden",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
