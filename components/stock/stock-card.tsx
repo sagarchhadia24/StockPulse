@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { StockWithScore } from "@/types";
-import { classifyStock } from "@/lib/valuation";
+import { classifyStock, getStockTypeLabel, getStockTypeColor } from "@/lib/valuation";
 import { GlassCard } from "@/components/ui/glass-card";
 import { ScoreRing } from "@/components/ui/score-ring";
 import { PriceChange } from "@/components/ui/price-change";
@@ -22,7 +22,12 @@ export function StockCard({ stock }: StockCardProps) {
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-xl font-bold" style={{ color: 'inherit' }}>{stock.symbol}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xl font-bold" style={{ color: 'inherit' }}>{stock.symbol}</h3>
+              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${getStockTypeColor(stock.stockType)}`}>
+                {getStockTypeLabel(stock.stockType)}
+              </span>
+            </div>
             <p className="text-sm truncate" style={{ opacity: 0.7 }}>{stock.name}</p>
           </div>
           <ScoreRing score={stock.valueScore} size={48} strokeWidth={3} />

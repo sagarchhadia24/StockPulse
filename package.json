@@ -43,6 +43,9 @@
     "lightningcss-linux-x64-gnu": "^1.31.1",
     "lightningcss-win32-x64-msvc": "^1.31.1"
   },
+  "overrides": {
+    "lightningcss": "^1.31.1"
+  },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",

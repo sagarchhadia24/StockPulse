@@ -9,6 +9,8 @@ export interface Stock {
   peRatio: number | null;
   pbRatio: number | null;
   pegRatio: number | null;
+  psRatio: number | null;
+  revenueGrowth: number | null;
   week52High: number;
   week52Low: number;
   dividendYield: number | null;
@@ -16,10 +18,13 @@ export interface Stock {
   avgVolume: number;
 }
 
+export type StockType = "value" | "growth" | "garp" | "dividend";
+
 export interface StockWithScore extends Stock {
   valueScore: number;
   scoreBreakdown: ScoreBreakdown;
   dataQuality: "high" | "medium" | "low";
+  stockType: StockType;
 }
 
 export interface ComparisonStock extends StockWithScore {
@@ -30,6 +35,8 @@ export interface ScoreBreakdown {
   peScore: number | null;
   pbScore: number | null;
   pegScore: number | null;
+  psScore: number | null;
+  revenueGrowthScore: number | null;
   weekPositionScore: number;
 }
 
