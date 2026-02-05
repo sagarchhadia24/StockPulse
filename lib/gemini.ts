@@ -1,5 +1,5 @@
 // lib/gemini.ts
-import { InsightInputData } from "@/types";
+import { InsightInputData, AnalysisStyle } from "@/types";
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
@@ -20,36 +20,76 @@ interface GeneratedInsight {
   keyConsiderations: string[];
 }
 
-function buildPrompt(symbol: string, name: string, data: InsightInputData): string {
+function formatVsSector(ratio: number | null): string {
+  if (ratio === null) return "N/A";
+  if (ratio < 0.8) return `${((1 - ratio) * 100).toFixed(0)}% below sector avg`;
+  if (ratio > 1.2) return `${((ratio - 1) * 100).toFixed(0)}% above sector avg`;
+  return "near sector average";
+}
+
+function formatMarketCap(marketCap: number): string {
+  if (marketCap >= 1_000_000_000_000) return `$${(marketCap / 1_000_000_000_000).toFixed(2)}T`;
+  if (marketCap >= 1_000_000_000) return `$${(marketCap / 1_000_000_000).toFixed(1)}B`;
+  return `$${(marketCap / 1_000_000).toFixed(0)}M`;
+}
+
+function buildPrompt(symbol: string, name: string, data: InsightInputData, style: AnalysisStyle): string {
   const positionPercent = data.week52High > data.week52Low
     ? Math.round(((data.price - data.week52Low) / (data.week52High - data.week52Low)) * 100)
     : 50;
 
-  return `You are a stock analyst assistant. Generate a concise insight for ${symbol} (${name}).
+  const volumeStatus = data.volumeRatio > 1.5
+    ? "unusually high volume"
+    : data.volumeRatio < 0.5
+      ? "unusually low volume"
+      : "normal volume";
 
-Current data:
-- Price: $${data.price.toFixed(2)} (${data.changePercent >= 0 ? '+' : ''}${data.changePercent.toFixed(2)}% today)
+  const wordCount = style === "detailed" ? "250-350" : "150-200";
+
+  return `You are a stock analyst assistant. Generate a ${style} insight for ${symbol} (${name}).
+
+STOCK DATA (use these exact values):
+- Current Price: $${data.price.toFixed(2)} (${data.changePercent >= 0 ? '+' : ''}${data.changePercent.toFixed(2)}% today)
+- Market Cap: ${formatMarketCap(data.marketCap)} (${data.marketCapCategory})
+- Stock Type: ${data.stockType}
 - Value Score: ${data.valueScore}/100 (${data.classification})
-- P/E Ratio: ${data.peRatio?.toFixed(1) ?? 'N/A'}
-- P/B Ratio: ${data.pbRatio?.toFixed(1) ?? 'N/A'}
+
+VALUATION METRICS vs ${data.sector} SECTOR:
+- P/E Ratio: ${data.peRatio?.toFixed(1) ?? 'N/A'} (sector avg: ${data.sectorAvgPE}) - ${formatVsSector(data.peVsSector)}
+- P/B Ratio: ${data.pbRatio?.toFixed(1) ?? 'N/A'} (sector avg: ${data.sectorAvgPB}) - ${formatVsSector(data.pbVsSector)}
+- P/S Ratio: ${data.psRatio?.toFixed(1) ?? 'N/A'} (sector avg: ${data.sectorAvgPS}) - ${formatVsSector(data.psVsSector)}
 - PEG Ratio: ${data.pegRatio?.toFixed(1) ?? 'N/A'}
-- 52-week range: $${data.week52Low.toFixed(2)} - $${data.week52High.toFixed(2)} (currently at ${positionPercent}%)
-- Sector: ${data.sector}
 
-Write a brief analysis (150-200 words total) with these exact sections:
+GROWTH & INCOME:
+- Revenue Growth: ${data.revenueGrowth !== null ? `${(data.revenueGrowth * 100).toFixed(1)}%` : 'N/A'}
+- Dividend Yield: ${data.dividendYield !== null ? `${data.dividendYield.toFixed(2)}%` : 'N/A'}
 
-SUMMARY: (1-2 sentences) Is this stock undervalued, fairly valued, or overvalued and why?
+TRADING DATA:
+- 52-week range: $${data.week52Low.toFixed(2)} - $${data.week52High.toFixed(2)}
+- Current position: ${positionPercent}% of 52-week range (price: $${data.price.toFixed(2)})
+- Volume: ${volumeStatus} (${data.volumeRatio.toFixed(1)}x average)
 
-VALUATION_ANALYSIS: (2-3 sentences) Explain the key metrics driving the score.
+DATA QUALITY: ${data.dataCompleteness}% of metrics available
 
-RECENT_PERFORMANCE: (1-2 sentences) Context on where price sits in 52-week range.
+Write a brief analysis (${wordCount} words total) with these exact sections:
+
+SUMMARY: (1-2 sentences) Is this stock undervalued, fairly valued, or overvalued based on the ${data.valueScore}/100 Value Score and why?
+
+VALUATION_ANALYSIS: (2-3 sentences) Compare key metrics to sector averages. Explain what's driving the valuation assessment.
+
+RECENT_PERFORMANCE: (1-2 sentences) The stock is trading at $${data.price.toFixed(2)}, which is ${positionPercent}% of its 52-week range ($${data.week52Low.toFixed(2)} - $${data.week52High.toFixed(2)}). Add context about this positioning.
 
 KEY_CONSIDERATIONS:
-- (First bullet point about a risk or opportunity)
-- (Second bullet point)
-- (Third bullet point if relevant)
+- (First bullet: main risk or opportunity based on the data)
+- (Second bullet: sector comparison insight)
+- (Third bullet: trading/volume observation or growth outlook)
 
-Be objective and data-driven. Avoid hype or recommendations to buy/sell. Use the exact section headers shown above.`;
+IMPORTANT RULES:
+1. Use the EXACT numerical values provided above - do not round, truncate, or modify any prices or metrics
+2. The current price is $${data.price.toFixed(2)} - use this exact value when mentioning price
+3. Be objective and data-driven based on the metrics provided
+4. Avoid hype or recommendations to buy/sell
+5. Use the exact section headers shown above`;
 }
 
 function parseGeminiResponse(text: string): GeneratedInsight {
@@ -60,7 +100,6 @@ function parseGeminiResponse(text: string): GeneratedInsight {
     .trim();
 
   // Parse the structured response with flexible matching
-  // Support variations like "SUMMARY:", "**SUMMARY:**", "Summary:", etc.
   const summaryMatch = normalizedText.match(/(?:^|\n)\s*\*?\*?SUMMARY\*?\*?:?\s*([\s\S]*?)(?=\n\s*\*?\*?VALUATION|$)/i);
   const valuationMatch = normalizedText.match(/(?:^|\n)\s*\*?\*?VALUATION[_\s]?ANALYSIS\*?\*?:?\s*([\s\S]*?)(?=\n\s*\*?\*?RECENT|$)/i);
   const performanceMatch = normalizedText.match(/(?:^|\n)\s*\*?\*?RECENT[_\s]?PERFORMANCE\*?\*?:?\s*([\s\S]*?)(?=\n\s*\*?\*?KEY|$)/i);
@@ -71,30 +110,28 @@ function parseGeminiResponse(text: string): GeneratedInsight {
   const recentPerformance = performanceMatch?.[1]?.trim() || "";
 
   // Parse bullet points with flexible matching
-  // Support: -, *, •, numbered lists (1., 1), etc.
   const considerationsText = considerationsMatch?.[1] || "";
   const keyConsiderations = considerationsText
     .split(/\n/)
     .map(line => line
-      .replace(/^\s*[-•*]\s*/, '') // Bullet points
-      .replace(/^\s*\d+[.)]\s*/, '') // Numbered lists
-      .replace(/^\s*\*\*/, '') // Bold markers at start
-      .replace(/\*\*\s*$/, '') // Bold markers at end
+      .replace(/^\s*[-•*]\s*/, '')
+      .replace(/^\s*\d+[.)]\s*/, '')
+      .replace(/^\s*\*\*/, '')
+      .replace(/\*\*\s*$/, '')
       .trim()
     )
-    .filter(line => line.length > 5) // Filter out empty or very short lines
-    .slice(0, 5); // Allow up to 5 considerations
+    .filter(line => line.length > 5)
+    .slice(0, 5);
 
-  // If no considerations found, try to extract any bullet-like content from the whole response
+  // Fallback if no considerations found
   let finalConsiderations = keyConsiderations;
   if (finalConsiderations.length === 0) {
-    // Fallback: look for any bullet points in the entire text
     const bulletMatches = normalizedText.match(/(?:^|\n)\s*[-•*]\s*(.+)/gm);
     if (bulletMatches) {
       finalConsiderations = bulletMatches
         .map(match => match.replace(/^\s*[-•*]\s*/, '').trim())
         .filter(line => line.length > 10)
-        .slice(-3); // Take last 3 (likely the considerations)
+        .slice(-3);
     }
   }
 
@@ -111,7 +148,8 @@ function parseGeminiResponse(text: string): GeneratedInsight {
 export async function generateInsight(
   symbol: string,
   name: string,
-  data: InsightInputData
+  data: InsightInputData,
+  style: AnalysisStyle = "concise"
 ): Promise<GeneratedInsight> {
   const apiKey = process.env.GEMINI_API_KEY;
 
@@ -119,7 +157,7 @@ export async function generateInsight(
     throw new Error("GEMINI_API_KEY not configured");
   }
 
-  const prompt = buildPrompt(symbol, name, data);
+  const prompt = buildPrompt(symbol, name, data, style);
 
   const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
     method: "POST",
