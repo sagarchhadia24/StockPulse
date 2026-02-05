@@ -154,9 +154,11 @@ export interface AIInsight {
   keyConsiderations: string[];
   inputData: InsightInputData;
   generatedAt: string;
+  confidence: 'high' | 'medium' | 'low';
 }
 
 export interface InsightInputData {
+  // Existing fields
   price: number;
   changePercent: number;
   valueScore: number;
@@ -167,4 +169,30 @@ export interface InsightInputData {
   week52High: number;
   week52Low: number;
   sector: string;
+
+  // New fields for enhanced analysis
+  marketCap: number;
+  marketCapCategory: MarketCapCategory;
+  volume: number;
+  avgVolume: number;
+  volumeRatio: number; // volume / avgVolume
+  psRatio: number | null;
+  dividendYield: number | null;
+  revenueGrowth: number | null;
+  stockType: string; // Display label for stock type (Value, Growth, GARP, Dividend)
+
+  // Sector comparison data
+  sectorAvgPE: number;
+  sectorAvgPB: number;
+  sectorAvgPS: number;
+  peVsSector: number | null; // ratio: stock PE / sector avg PE
+  pbVsSector: number | null;
+  psVsSector: number | null;
+
+  // Data quality indicator
+  dataCompleteness: number; // 0-100 percentage of available metrics
 }
+
+export type AnalysisStyle = 'concise' | 'detailed';
+
+export type MarketCapCategory = 'mega-cap' | 'large-cap' | 'mid-cap' | 'small-cap' | 'micro-cap';
