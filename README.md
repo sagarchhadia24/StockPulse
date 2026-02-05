@@ -6,8 +6,9 @@ A smart stock analysis dashboard that helps investors identify undervalued and o
 
 ### Core Dashboard
 - **Market Overview** - Live indices (S&P 500, NASDAQ, Dow Jones) with real-time updates
-- **Stock Valuation Scoring** - Proprietary algorithm using P/E, P/B, PEG, and 52-week position
-- **Top Undervalued/Overvalued** - Curated lists of stocks by value score
+- **Stock Valuation Scoring** - Proprietary algorithm using P/E, P/B, PEG, P/S, revenue growth, and 52-week position
+- **Stock Type Classification** - Automatic classification as Value, Growth, GARP, or Dividend with tailored weight profiles
+- **Top Undervalued/Overvalued** - Curated lists of stocks by value score with sector filtering
 
 ### Stock Analysis
 - **Detailed Stock Pages** - Price charts, valuation metrics, score breakdown
@@ -108,6 +109,8 @@ StockPulse/
 │   ├── layout/              # Header, nav, mobile drawer
 │   ├── stock/               # Stock-related components
 │   └── ui/                  # Shared UI components
+├── data/                    # Static data files
+│   └── sector-averages.ts   # Sector P/E, P/B, P/S averages
 ├── lib/                     # Utilities and API clients
 ├── hooks/                   # Custom React hooks
 ├── supabase/migrations/     # Database migrations
@@ -132,6 +135,55 @@ The app uses Vercel Cron for scheduled tasks:
 |-----|----------|-------------|
 | `/api/cron/snapshot-valuations` | 4:30 PM ET weekdays | Save daily valuation snapshots |
 | `/api/cron/check-alerts` | 4:35 PM ET weekdays | Check and send price alerts |
+
+## Valuation Scoring System
+
+StockPulse uses a proprietary valuation algorithm that adapts to different stock types.
+
+### Stock Type Classification
+
+Stocks are automatically classified into one of four types based on their financial characteristics:
+
+| Type | Criteria |
+|------|----------|
+| **Value** | Profitable companies with moderate growth, reasonable P/E |
+| **Growth** | High revenue growth (>15%) or high P/E (>40), may be unprofitable |
+| **GARP** | Growth at Reasonable Price - profitable with high growth and PEG < 2 |
+| **Dividend** | High dividend yield (>2.5%), profitable, not high-growth |
+
+### Scoring Metrics
+
+Each stock is scored on 6 metrics (0-100 scale):
+
+| Metric | Description |
+|--------|-------------|
+| **P/E Score** | Price-to-Earnings vs sector average |
+| **P/B Score** | Price-to-Book vs sector average |
+| **PEG Score** | Price/Earnings-to-Growth ratio (PEG < 1 = undervalued) |
+| **P/S Score** | Price-to-Sales vs sector average |
+| **Revenue Growth** | Year-over-year revenue growth |
+| **52-Week Position** | Current price position within 52-week range |
+
+### Weight Profiles
+
+Different stock types use different weight profiles:
+
+| Metric | Value | Growth | GARP | Dividend |
+|--------|-------|--------|------|----------|
+| P/E | 35% | 10% | 20% | 25% |
+| P/B | 25% | 10% | 15% | 20% |
+| PEG | 15% | 15% | 25% | 10% |
+| P/S | 10% | 30% | 15% | 15% |
+| Revenue Growth | 5% | 25% | 15% | 10% |
+| 52-Week | 10% | 10% | 10% | 20% |
+
+### Score Interpretation
+
+| Score Range | Classification |
+|-------------|----------------|
+| 65-100 | Undervalued |
+| 35-64 | Fair Value |
+| 0-34 | Overvalued |
 
 ## License
 
