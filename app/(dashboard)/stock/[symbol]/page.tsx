@@ -6,22 +6,24 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StockChart } from "@/components/stock/stock-chart";
+import { AdvancedChart } from "@/components/stock/advanced-chart";
 import { StockMetrics } from "@/components/stock/stock-metrics";
 import { StockNewsList } from "@/components/stock/stock-news";
 import { ValuationHistoryChart } from "@/components/stock/valuation-history-chart";
 import { WatchlistButton } from "@/components/stock/watchlist-button";
 import { SetAlertButton } from "@/components/stock/set-alert-button";
 import { AIInsightSection } from "@/components/stock/ai-insight-section";
+import { EarningsSection } from "@/components/stock/earnings-section";
+import { AnalystRatingsSection } from "@/components/stock/analyst-ratings";
+import { FinancialsSection } from "@/components/stock/financials-section";
 import { calculateValueScore, classifyStock, getScoreColor, getStockTypeLabel, getStockTypeColor, getWeightProfile } from "@/lib/valuation";
-import { getStockQuote, getStockNews, getHistoricalPrices } from "@/lib/yahoo-finance";
+import { getStockQuote, getStockNews } from "@/lib/yahoo-finance";
 import { cn } from "@/lib/utils";
 
 async function getStockData(symbol: string) {
-  const [stock, news, history] = await Promise.all([
+  const [stock, news] = await Promise.all([
     getStockQuote(symbol, { includeExtendedData: true }), // Fetch revenue growth for detail page
     getStockNews(symbol),
-    getHistoricalPrices(symbol, "1y"),
   ]);
 
   if (!stock) return null;
@@ -29,7 +31,6 @@ async function getStockData(symbol: string) {
   return {
     stock: calculateValueScore(stock),
     news,
-    history,
   };
 }
 
@@ -57,7 +58,7 @@ async function StockDetailContent({ symbol }: { symbol: string }) {
     notFound();
   }
 
-  const { stock, news, history } = data;
+  const { stock, news } = data;
   const classification = classifyStock(stock.valueScore);
   const scoreColor = getScoreColor(stock.valueScore);
   const weights = getWeightProfile(stock.stockType);
@@ -126,14 +127,17 @@ async function StockDetailContent({ symbol }: { symbol: string }) {
       </div>
 
       {/* Chart */}
-      <StockChart
-        history={history}
-        week52High={stock.week52High}
-        week52Low={stock.week52Low}
-      />
+      <AdvancedChart symbol={stock.symbol} />
 
       {/* Metrics */}
       <StockMetrics stock={stock} />
+
+      {/* Data Enrichment Sections */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <EarningsSection symbol={stock.symbol} />
+        <AnalystRatingsSection symbol={stock.symbol} currentPrice={stock.price} />
+      </div>
+      <FinancialsSection symbol={stock.symbol} />
 
       {/* Valuation History */}
       <ValuationHistoryChart symbol={stock.symbol} />
