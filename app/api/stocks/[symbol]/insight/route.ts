@@ -9,6 +9,7 @@ import {
   getMarketCapCategory,
   calculateDataCompleteness,
 } from "@/lib/insights-validation";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST(
   request: NextRequest,
@@ -16,6 +17,24 @@ export async function POST(
 ) {
   const { symbol } = await params;
   const upperSymbol = symbol.toUpperCase();
+
+  // Rate limit check
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rateLimitKey = `insight:${ip}`;
+  const rateLimit = checkRateLimit(rateLimitKey, RATE_LIMITS.aiInsight);
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
+          "X-RateLimit-Remaining": String(rateLimit.remaining),
+        },
+      }
+    );
+  }
 
   // Parse request body
   let forceRefresh = false;

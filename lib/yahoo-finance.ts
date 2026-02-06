@@ -1,4 +1,4 @@
-import { Stock, StockNews, MarketIndex, Sector } from "@/types";
+import { Stock, StockNews, MarketIndex, Sector, EarningsData, AnalystRatings, FinancialStatements, OHLCVDataPoint } from "@/types";
 
 // Set to true to use mock data only (bypass Yahoo Finance completely)
 const USE_MOCK_DATA_ONLY = false;
@@ -543,6 +543,10 @@ export async function getHistoricalPrices(
 function getStartDate(period: string): Date {
   const now = new Date();
   switch (period) {
+    case "1d":
+      return new Date(now.setDate(now.getDate() - 1));
+    case "1w":
+      return new Date(now.setDate(now.getDate() - 7));
     case "1mo":
       return new Date(now.setMonth(now.getMonth() - 1));
     case "3mo":
@@ -556,4 +560,158 @@ function getStartDate(period: string): Date {
     default:
       return new Date(now.setFullYear(now.getFullYear() - 1));
   }
+}
+
+export async function getEarningsData(symbol: string): Promise<EarningsData | null> {
+  if (USE_MOCK_DATA_ONLY) return null;
+
+  const fetchEarnings = async (): Promise<EarningsData | null> => {
+    const yf = await getYahooFinance();
+    const summary = await yf.quoteSummary(symbol, {
+      modules: ["earningsTrend", "earningsHistory", "calendarEvents"],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as Record<string, any>;
+
+    if (!summary) return null;
+
+    // Extract earnings date from calendarEvents
+    const earningsDate = summary.calendarEvents?.earnings?.earningsDate?.[0]
+      ? new Date(summary.calendarEvents.earnings.earningsDate[0]).toISOString().split("T")[0]
+      : null;
+
+    // Extract earnings history
+    const history = summary.earningsHistory?.history || [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const earningsHistory = history.slice(0, 4).map((q: any) => ({
+      quarter: q.quarter ? `Q${q.quarter}` : "N/A",
+      date: q.period || "N/A",
+      epsEstimate: q.epsEstimate?.raw ?? null,
+      epsActual: q.epsActual?.raw ?? null,
+      epsSurprise: q.epsDifference?.raw ?? null,
+      epsSurprisePercent: q.surprisePercent?.raw ? q.surprisePercent.raw * 100 : null,
+    }));
+
+    // Extract EPS from earningsTrend
+    const currentTrend = summary.earningsTrend?.trend?.[0];
+    const epsTrailing = currentTrend?.earningsEstimate?.avg?.raw ?? null;
+    const forwardTrend = summary.earningsTrend?.trend?.[1];
+    const epsForward = forwardTrend?.earningsEstimate?.avg?.raw ?? null;
+
+    return { earningsDate, earningsHistory, epsTrailing, epsForward };
+  };
+
+  return withTimeout(fetchEarnings, null);
+}
+
+export async function getAnalystRatings(symbol: string): Promise<AnalystRatings | null> {
+  if (USE_MOCK_DATA_ONLY) return null;
+
+  const fetchRatings = async (): Promise<AnalystRatings | null> => {
+    const yf = await getYahooFinance();
+    const summary = await yf.quoteSummary(symbol, {
+      modules: ["financialData"],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as Record<string, any>;
+
+    const fd = summary?.financialData;
+    if (!fd) return null;
+
+    return {
+      targetMean: fd.targetMeanPrice?.raw ?? null,
+      targetMedian: fd.targetMedianPrice?.raw ?? null,
+      targetHigh: fd.targetHighPrice?.raw ?? null,
+      targetLow: fd.targetLowPrice?.raw ?? null,
+      numberOfAnalysts: fd.numberOfAnalystOpinions?.raw ?? 0,
+      recommendation: fd.recommendationKey || "none",
+      recommendationScore: fd.recommendationMean?.raw ?? null,
+    };
+  };
+
+  return withTimeout(fetchRatings, null);
+}
+
+export async function getFinancialStatements(symbol: string): Promise<FinancialStatements | null> {
+  if (USE_MOCK_DATA_ONLY) return null;
+
+  const fetchFinancials = async (): Promise<FinancialStatements | null> => {
+    const yf = await getYahooFinance();
+    const summary = await yf.quoteSummary(symbol, {
+      modules: ["incomeStatementHistory", "cashflowStatementHistory", "financialData"],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as Record<string, any>;
+
+    if (!summary) return null;
+
+    const incomeHistory = summary.incomeStatementHistory?.incomeStatementHistory || [];
+    const cashflowHistory = summary.cashflowStatementHistory?.cashflowStatements || [];
+    const fd = summary.financialData || {};
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const annualRevenue = incomeHistory.map((stmt: any) => ({
+      date: stmt.endDate ? new Date(stmt.endDate).toISOString().split("T")[0] : "N/A",
+      value: stmt.totalRevenue?.raw ?? 0,
+    }));
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const annualNetIncome = incomeHistory.map((stmt: any) => ({
+      date: stmt.endDate ? new Date(stmt.endDate).toISOString().split("T")[0] : "N/A",
+      value: stmt.netIncome?.raw ?? 0,
+    }));
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const annualFreeCashFlow = cashflowHistory.map((stmt: any) => ({
+      date: stmt.endDate ? new Date(stmt.endDate).toISOString().split("T")[0] : "N/A",
+      value: (stmt.totalCashFromOperatingActivities?.raw ?? 0) - (stmt.capitalExpenditures?.raw ?? 0),
+    }));
+
+    return {
+      annualRevenue,
+      annualNetIncome,
+      annualFreeCashFlow,
+      profitMargin: fd.profitMargins?.raw ?? null,
+      operatingMargin: fd.operatingMargins?.raw ?? null,
+      returnOnEquity: fd.returnOnEquity?.raw ?? null,
+      debtToEquity: fd.debtToEquity?.raw ?? null,
+      currentRatio: fd.currentRatio?.raw ?? null,
+    };
+  };
+
+  return withTimeout(fetchFinancials, null);
+}
+
+export async function getOHLCVHistory(
+  symbol: string,
+  period: string = "1y"
+): Promise<OHLCVDataPoint[]> {
+  if (USE_MOCK_DATA_ONLY) return [];
+
+  const fetchOHLCV = async (): Promise<OHLCVDataPoint[]> => {
+    const yf = await getYahooFinance();
+
+    // Determine appropriate interval based on period
+    let interval: string = "1d";
+    if (period === "1d") interval = "5m";
+    else if (period === "1w") interval = "15m";
+
+    const result = await yf.historical(symbol, {
+      period1: getStartDate(period),
+      period2: new Date(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      interval: interval as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as Array<Record<string, any>>;
+
+    return result.map((item) => ({
+      date: item.date instanceof Date
+        ? item.date.toISOString()
+        : new Date(item.date).toISOString(),
+      open: item.open ?? item.close ?? 0,
+      high: item.high ?? item.close ?? 0,
+      low: item.low ?? item.close ?? 0,
+      close: item.close ?? 0,
+      volume: item.volume ?? 0,
+    }));
+  };
+
+  return withTimeout(fetchOHLCV, []);
 }

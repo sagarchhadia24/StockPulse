@@ -5,12 +5,14 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { ScoreRing } from "@/components/ui/score-ring";
 import { PriceChange } from "@/components/ui/price-change";
 import { RangeBar } from "@/components/ui/range-bar";
+import { cn } from "@/lib/utils";
 
 interface StockCardProps {
   stock: StockWithScore;
+  sentimentLabel?: 'bullish' | 'neutral' | 'bearish' | null;
 }
 
-export function StockCard({ stock }: StockCardProps) {
+export function StockCard({ stock, sentimentLabel }: StockCardProps) {
   const classification = classifyStock(stock.valueScore);
 
   return (
@@ -27,6 +29,17 @@ export function StockCard({ stock }: StockCardProps) {
               <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${getStockTypeColor(stock.stockType)}`}>
                 {getStockTypeLabel(stock.stockType)}
               </span>
+              {sentimentLabel && (
+                <span
+                  className={cn(
+                    "h-2 w-2 rounded-full",
+                    sentimentLabel === "bullish" ? "bg-green-500" :
+                    sentimentLabel === "bearish" ? "bg-red-500" :
+                    "bg-gray-400"
+                  )}
+                  title={`Sentiment: ${sentimentLabel}`}
+                />
+              )}
             </div>
             <p className="text-sm truncate" style={{ opacity: 0.7 }}>{stock.name}</p>
           </div>

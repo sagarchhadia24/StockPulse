@@ -155,10 +155,13 @@ export interface AIInsight {
   inputData: InsightInputData;
   generatedAt: string;
   confidence: 'high' | 'medium' | 'low';
+  sentimentScore: number | null;
+  sentimentLabel: 'bullish' | 'neutral' | 'bearish' | null;
+  newsSummary: string | null;
+  preGenerated: boolean;
 }
 
 export interface InsightInputData {
-  // Existing fields
   price: number;
   changePercent: number;
   valueScore: number;
@@ -169,30 +172,122 @@ export interface InsightInputData {
   week52High: number;
   week52Low: number;
   sector: string;
-
-  // New fields for enhanced analysis
   marketCap: number;
   marketCapCategory: MarketCapCategory;
   volume: number;
   avgVolume: number;
-  volumeRatio: number; // volume / avgVolume
+  volumeRatio: number;
   psRatio: number | null;
   dividendYield: number | null;
   revenueGrowth: number | null;
-  stockType: string; // Display label for stock type (Value, Growth, GARP, Dividend)
-
-  // Sector comparison data
+  stockType: string;
   sectorAvgPE: number;
   sectorAvgPB: number;
   sectorAvgPS: number;
-  peVsSector: number | null; // ratio: stock PE / sector avg PE
+  peVsSector: number | null;
   pbVsSector: number | null;
   psVsSector: number | null;
-
-  // Data quality indicator
-  dataCompleteness: number; // 0-100 percentage of available metrics
+  dataCompleteness: number;
+  analystTargetMedian?: number | null;
+  analystRecommendation?: string | null;
+  lastEpsSurprisePercent?: number | null;
 }
 
 export type AnalysisStyle = 'concise' | 'detailed';
 
 export type MarketCapCategory = 'mega-cap' | 'large-cap' | 'mid-cap' | 'small-cap' | 'micro-cap';
+
+export interface EarningsQuarter {
+  quarter: string;
+  date: string;
+  epsEstimate: number | null;
+  epsActual: number | null;
+  epsSurprise: number | null;
+  epsSurprisePercent: number | null;
+}
+
+export interface EarningsData {
+  earningsDate: string | null;
+  earningsHistory: EarningsQuarter[];
+  epsTrailing: number | null;
+  epsForward: number | null;
+}
+
+export interface AnalystRatings {
+  targetMean: number | null;
+  targetMedian: number | null;
+  targetHigh: number | null;
+  targetLow: number | null;
+  numberOfAnalysts: number;
+  recommendation: string;
+  recommendationScore: number | null;
+}
+
+export interface FinancialDataPoint {
+  date: string;
+  value: number;
+}
+
+export interface FinancialStatements {
+  annualRevenue: FinancialDataPoint[];
+  annualNetIncome: FinancialDataPoint[];
+  annualFreeCashFlow: FinancialDataPoint[];
+  profitMargin: number | null;
+  operatingMargin: number | null;
+  returnOnEquity: number | null;
+  debtToEquity: number | null;
+  currentRatio: number | null;
+}
+
+export interface OHLCVDataPoint {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export interface PortfolioPosition {
+  id: string;
+  userId: string;
+  symbol: string;
+  shares: number;
+  buyPrice: number;
+  buyDate: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePositionInput {
+  symbol: string;
+  shares: number;
+  buyPrice: number;
+  buyDate?: string;
+  notes?: string;
+}
+
+export interface UpdatePositionInput {
+  shares?: number;
+  buyPrice?: number;
+  buyDate?: string;
+  notes?: string;
+}
+
+export interface PortfolioSummary {
+  totalValue: number;
+  totalCost: number;
+  totalGain: number;
+  totalGainPercent: number;
+  positionCount: number;
+}
+
+export interface PortfolioPositionWithMarket extends PortfolioPosition {
+  currentPrice: number;
+  currentValue: number;
+  gain: number;
+  gainPercent: number;
+  dayChange: number;
+  sector: string;
+}

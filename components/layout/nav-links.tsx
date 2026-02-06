@@ -12,6 +12,7 @@ import {
   Star,
   GitCompare,
   Bell,
+  Briefcase,
   Zap,
   ChevronDown,
   Compass,
@@ -37,6 +38,7 @@ const primaryLinks: NavLink[] = [
   { href: "/", label: "Dashboard", icon: Home },
   { href: "/watchlist", label: "Watchlist", icon: Star },
   { href: "/alerts", label: "Alerts", icon: Bell },
+  { href: "/portfolio", label: "Portfolio", icon: Briefcase },
 ];
 
 // Grouped links for dropdowns

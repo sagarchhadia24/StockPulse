@@ -68,8 +68,14 @@ TRADING DATA:
 - 52-week range: $${data.week52Low.toFixed(2)} - $${data.week52High.toFixed(2)}
 - Current position: ${positionPercent}% of 52-week range (price: $${data.price.toFixed(2)})
 - Volume: ${volumeStatus} (${data.volumeRatio.toFixed(1)}x average)
-
-DATA QUALITY: ${data.dataCompleteness}% of metrics available
+${data.analystTargetMedian || data.analystRecommendation || data.lastEpsSurprisePercent
+  ? `
+ANALYST & EARNINGS DATA:
+- Analyst Target (Median): ${data.analystTargetMedian ? `$${data.analystTargetMedian.toFixed(2)}` : 'N/A'}
+- Analyst Recommendation: ${data.analystRecommendation || 'N/A'}
+- Last EPS Surprise: ${data.lastEpsSurprisePercent !== null && data.lastEpsSurprisePercent !== undefined ? `${data.lastEpsSurprisePercent >= 0 ? '+' : ''}${data.lastEpsSurprisePercent.toFixed(1)}%` : 'N/A'}
+`
+  : ''}DATA QUALITY: ${data.dataCompleteness}% of metrics available
 
 Write a brief analysis (${wordCount} words total) with these exact sections:
 

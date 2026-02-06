@@ -25,6 +25,10 @@ function mapRowToInsight(row: any): AIInsight {
     inputData: row.input_data,
     generatedAt: row.generated_at,
     confidence: row.confidence || "medium",
+    sentimentScore: row.sentiment_score ?? null,
+    sentimentLabel: row.sentiment_label ?? null,
+    newsSummary: row.news_summary ?? null,
+    preGenerated: row.pre_generated ?? false,
   };
 }
 
@@ -91,7 +95,13 @@ export async function saveInsight(
     keyConsiderations: string[];
   },
   inputData: InsightInputData,
-  confidence: "high" | "medium" | "low"
+  confidence: "high" | "medium" | "low",
+  sentimentData?: {
+    sentimentScore: number | null;
+    sentimentLabel: string | null;
+    newsSummary: string | null;
+    preGenerated: boolean;
+  }
 ): Promise<AIInsight | null> {
   const supabase = await createClient();
 
@@ -106,6 +116,12 @@ export async function saveInsight(
       input_data: inputData,
       confidence,
       generated_at: new Date().toISOString(),
+      ...(sentimentData && {
+        sentiment_score: sentimentData.sentimentScore,
+        sentiment_label: sentimentData.sentimentLabel,
+        news_summary: sentimentData.newsSummary,
+        pre_generated: sentimentData.preGenerated,
+      }),
     }, {
       onConflict: "symbol",
     })
@@ -194,4 +210,25 @@ export async function getOrGenerateInsight(
       error: error instanceof Error ? error.message : "Failed to generate insight",
     };
   }
+}
+
+/**
+ * Get pre-generated insights (from cron job)
+ */
+export async function getPreGeneratedInsights(limit: number = 10): Promise<AIInsight[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("ai_insights")
+    .select("*")
+    .eq("pre_generated", true)
+    .order("generated_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Error fetching pre-generated insights:", error);
+    return [];
+  }
+
+  return (data || []).map(mapRowToInsight);
 }
